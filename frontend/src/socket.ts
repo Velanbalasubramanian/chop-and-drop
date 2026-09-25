@@ -14,7 +14,7 @@ export function getSocket(): Socket {
       console.log('[Socket.IO] Connected to real-time server:', socket?.id)
     })
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', (reason: any) => {
       console.log('[Socket.IO] Disconnected:', reason)
     })
   }
