@@ -1,0 +1,28 @@
+{
+  "name": "chop-and-drop-backend",
+  "private": true,
+  "version": "0.1.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "db:view": "node scripts/view-db.js",
+    "db:orders": "node scripts/view-db.js orders",
+    "db:users": "node scripts/view-db.js users",
+    "db:tickets": "node scripts/view-db.js tickets"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.10.2",
+    "nodemailer": "^6.9.14",
+    "socket.io": "^4.8.3",
+    "twilio": "^5.3.0"
+  }
+}
