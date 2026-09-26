@@ -14,7 +14,7 @@ export default function About() {
           </p>
           <p>
             Today we work with families, PG hostels and small hotel kitchens who would rather spend
-            their morning cooking than cutting. Every vegetable is cut the same day it's delivered â€”
+            their morning cooking than cutting. Every vegetable is cut the same day it's delivered —
             nothing is chopped and stored for later.
           </p>
           <ul className="about-list">
@@ -30,7 +30,7 @@ export default function About() {
             "Our cooks used to lose an hour every morning to the cutting board. Now that hour goes into
             the food itself."
           </p>
-          <span className="about-panel-attribution">â€” A mess kitchen we supply in Velachery</span>
+          <span className="about-panel-attribution">— A mess kitchen we supply in Velachery</span>
         </div>
       </div>
     </section>

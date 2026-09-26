@@ -2,7 +2,7 @@
   "name": "chop-and-drop",
   "version": "1.0.0",
   "private": true,
-  "description": "Easy Foods â€” Fresh Vegetable Chopping & Delivery Platform",
+  "description": "Easy Foods — Fresh Vegetable Chopping & Delivery Platform",
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix admin",
     "build": "npm run build --prefix frontend && npm run build --prefix admin",

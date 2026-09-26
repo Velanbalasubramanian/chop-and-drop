@@ -66,7 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, 0)
 
   // Turns the cart into the plain-text "items" line the order form/backend expects
-  // â€” e.g. "2x Sambar Vegetable Mix, 1x Salad Mix"
+  // — e.g. "2x Sambar Vegetable Mix, 1x Salad Mix"
   function formatForOrder() {
     return items
       .map((i) => {

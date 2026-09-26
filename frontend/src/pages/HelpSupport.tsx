@@ -1,4 +1,4 @@
-﻿import { FormEvent, useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { submitSupportTicket } from '../api'
 import { useAuth } from '../context/AuthContext'
 
@@ -9,7 +9,7 @@ const FAQS = [
   },
   {
     q: 'How do Online Payment & Cash on Delivery (COD) work?',
-    a: 'You can choose between Cash on Delivery (pay cash or scan the delivery executiveâ€™s UPI QR code at your doorstep) or 100% secure Online Payment (Google Pay, PhonePe, Paytm, UPI ID, or Credit/Debit Card).',
+    a: "You can choose between Cash on Delivery (pay cash or scan the delivery executive's UPI QR code at your doorstep) or 100% secure Online Payment (Google Pay, PhonePe, Paytm, UPI ID, or Credit/Debit Card).",
   },
   {
     q: 'What if I am not satisfied with the quality of cut vegetables?',
@@ -21,7 +21,7 @@ const FAQS = [
   },
   {
     q: 'What delivery slots are available in Chennai?',
-    a: 'We currently deliver in 3 convenient time slots: 6:00 AM â€“ 7:00 AM (for early morning cooking), 7:00 AM â€“ 8:00 AM, and 5:00 PM â€“ 6:00 PM (for evening dinner prep).',
+    a: 'We currently deliver in 3 convenient time slots: 6:00 AM – 7:00 AM (for early morning cooking), 7:00 AM – 8:00 AM, and 5:00 PM – 6:00 PM (for evening dinner prep).',
   },
   {
     q: 'How can I track my order live?',
@@ -74,7 +74,7 @@ export default function HelpSupport() {
         <p className="page-eyebrow">Customer Care</p>
         <h1>Help &amp; Support</h1>
         <p className="page-intro">
-          Weâ€™re here to help you get fresh, chopped vegetables without the kitchen hassle. Reach out to our
+          We're here to help you get fresh, chopped vegetables without the kitchen hassle. Reach out to our
           team directly or raise a support ticket below.
         </p>
       </div>
@@ -99,7 +99,7 @@ export default function HelpSupport() {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>ðŸ’¬</div>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
           <h3 style={{ fontSize: '1.15rem', margin: '0 0 0.25rem 0', color: '#137333' }}>WhatsApp Support</h3>
           <p style={{ color: '#686b78', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
             Instant replies for orders &amp; custom requests
@@ -118,7 +118,7 @@ export default function HelpSupport() {
               textDecoration: 'none',
             }}
           >
-            Chat on WhatsApp âž”
+            Chat on WhatsApp ➔
           </a>
         </div>
 
@@ -133,10 +133,10 @@ export default function HelpSupport() {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>ðŸ“ž</div>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📞</div>
           <h3 style={{ fontSize: '1.15rem', margin: '0 0 0.25rem 0', color: '#294a2c' }}>Direct Helpline</h3>
           <p style={{ color: '#686b78', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
-            Available daily 6:00 AM â€“ 9:00 PM
+            Available daily 6:00 AM – 9:00 PM
           </p>
           <a
             href="tel:+919876543210"
@@ -158,7 +158,7 @@ export default function HelpSupport() {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>âœ‰ï¸</div>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✉️ï¸</div>
           <h3 style={{ fontSize: '1.15rem', margin: '0 0 0.25rem 0', color: '#294a2c' }}>Email Care</h3>
           <p style={{ color: '#686b78', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
             For corporate, bulk &amp; general queries
@@ -191,7 +191,7 @@ export default function HelpSupport() {
 
           {ticketSuccess ? (
             <div style={{ background: '#e6f4ea', border: '1px solid #ceead6', borderRadius: '12px', padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', color: '#137333', marginBottom: '0.5rem' }}>âœ“</div>
+              <div style={{ fontSize: '2rem', color: '#137333', marginBottom: '0.5rem' }}>✓</div>
               <h3 style={{ color: '#137333', margin: '0 0 0.5rem 0' }}>Ticket Created!</h3>
               <p style={{ fontSize: '0.9rem', color: '#3d4152', margin: '0 0 1rem 0' }}>
                 Your ticket ID is <strong>{ticketSuccess}</strong>. Our team has received your request and will call or text you shortly.
@@ -291,7 +291,7 @@ export default function HelpSupport() {
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Please describe how we can assist youâ€¦"
+                  placeholder="Please describe how we can assist you..."
                   style={{ width: '100%', padding: '0.7rem', borderRadius: '8px', border: '1.5px solid #ececee', resize: 'vertical' }}
                 />
               </div>
@@ -304,7 +304,7 @@ export default function HelpSupport() {
                 disabled={loading}
                 style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
               >
-                {loading ? 'Submittingâ€¦' : 'Submit Support Request'}
+                {loading ? 'Submitting...' : 'Submit Support Request'}
               </button>
             </form>
           )}

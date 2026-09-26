@@ -106,7 +106,7 @@ export default function Admin() {
     // Real-time: customer placed a new order
     socket.on('new_order', (newOrder: AdminOrder) => {
       setOrders((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
-      setNotification(`ðŸŸ¢ New Order Placed: ${newOrder.id} from ${newOrder.name} (â‚¹${newOrder.amount || 0})`)
+      setNotification(`🟢 New Order Placed: ${newOrder.id} from ${newOrder.name} (₹${newOrder.amount || 0})`)
       setLastUpdated(new Date())
       setTimeout(() => setNotification(''), 8000)
     })
@@ -120,7 +120,7 @@ export default function Admin() {
     // Real-time: customer raised a support ticket
     socket.on('new_ticket', (ticket: SupportTicket) => {
       setTickets((prev) => [ticket, ...prev.filter((t) => t.id !== ticket.id)])
-      setNotification(`ðŸŽ« New Support Ticket: ${ticket.id} from ${ticket.name} (${ticket.issueType})`)
+      setNotification(`🎫 New Support Ticket: ${ticket.id} from ${ticket.name} (${ticket.issueType})`)
       setLastUpdated(new Date())
       setTimeout(() => setNotification(''), 8000)
     })
@@ -226,7 +226,7 @@ export default function Admin() {
     return (
       <div className="admin-login-fullscreen">
         <div className="admin-login-card">
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>ðŸ›¡ï¸</div>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🛡️ï¸</div>
           <h1 style={{ fontSize: '1.6rem', margin: '0 0 0.3rem', color: '#1b4332' }}>Easy Foods</h1>
           <p style={{ fontWeight: 700, color: 'var(--carrot-dark)', margin: '0 0 0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Staff &amp; Admin Console
@@ -264,7 +264,7 @@ export default function Admin() {
                 border: '1px solid var(--line)',
               }}
             >
-              ðŸ”‘ <strong>Admin Password:</strong> <code>admin123</code> (defined in <code>backend/.env</code>)
+              🔑 <strong>Admin Password:</strong> <code>admin123</code> (defined in <code>backend/.env</code>)
             </div>
 
             <button
@@ -273,7 +273,7 @@ export default function Admin() {
               disabled={loading}
               style={{ width: '100%', padding: '0.75rem', fontWeight: 600, borderRadius: '6px' }}
             >
-              {loading ? 'Verifying Credentialsâ€¦' : 'Sign In to Admin Portal'}
+              {loading ? 'Verifying Credentials...' : 'Sign In to Admin Portal'}
             </button>
 
             {loginError && (
@@ -285,7 +285,7 @@ export default function Admin() {
 
           <div style={{ marginTop: '1.75rem', borderTop: '1px solid var(--line)', paddingTop: '1rem' }}>
             <Link to="/" style={{ color: 'var(--leaf-deep)', fontWeight: 600, fontSize: '0.88rem', textDecoration: 'none' }}>
-              â† Return to Customer Website
+              ← Return to Customer Website
             </Link>
           </div>
         </div>
@@ -300,7 +300,7 @@ export default function Admin() {
       <header className="admin-portal-header">
         <div className="admin-portal-header-inner">
           <div className="admin-portal-brand">
-            <span>ðŸ›¡ï¸</span>
+            <span>🛡️ï¸</span>
             <span>Easy Foods</span>
             <span className="admin-portal-badge">Admin Console</span>
           </div>
@@ -310,19 +310,19 @@ export default function Admin() {
               className={`admin-pill-badge ${socketConnected ? 'admin-pill-online' : 'admin-pill-connecting'}`}
               style={{ background: socketConnected ? '#2d6a4f' : '#b06000', color: '#ffffff', borderColor: 'transparent' }}
             >
-              {socketConnected ? 'ðŸŸ¢ Live Push Active' : 'ðŸŸ¡ Socket Connectingâ€¦'}
+              {socketConnected ? '🟢 Live Push Active' : '🟡 Socket Connecting...'}
             </span>
             <span
               className="admin-pill-badge"
               style={{ background: '#084298', color: '#cfe2ff', borderColor: 'transparent' }}
             >
-              ðŸƒ MongoDB Engine
+              🍃 MongoDB Engine
             </span>
           </div>
 
           <div className="admin-portal-nav-right">
             <Link to="/" className="admin-view-store-btn" title="Open customer website in new tab" target="_blank" rel="noopener noreferrer">
-              ðŸŒ View Storefront â†—
+              🌐 View Storefront ↗
             </Link>
             <button type="button" className="admin-portal-logout-btn" onClick={handleLogout}>
               Log out
@@ -355,7 +355,7 @@ export default function Admin() {
               onClick={() => setNotification('')}
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#137333' }}
             >
-              âœ•
+              ✕
             </button>
           </div>
         )}
@@ -376,7 +376,7 @@ export default function Admin() {
               </span>
             )}
             <button className="btn btn-ghost" onClick={() => loadAll(token, true)} disabled={loading} style={{ padding: '0.45rem 0.9rem', fontSize: '0.88rem', background: '#fff' }}>
-              {loading ? 'Refreshingâ€¦' : 'ðŸ”„ Refresh Data'}
+              {loading ? 'Refreshing...' : '↻ Refresh Data'}
             </button>
           </div>
         </div>
@@ -388,7 +388,7 @@ export default function Admin() {
             <div className="admin-metric-title">Total Orders</div>
           </div>
           <div className="admin-metric-card">
-            <div className="admin-metric-num" style={{ color: '#0f5132' }}>â‚¹{totalRevenue}</div>
+            <div className="admin-metric-num" style={{ color: '#0f5132' }}>₹{totalRevenue}</div>
             <div className="admin-metric-title">Revenue Generated</div>
           </div>
           <div className="admin-metric-card">
@@ -413,7 +413,7 @@ export default function Admin() {
             className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
-            <span>ðŸ“¦ Orders</span>
+            <span>📦 Orders</span>
             <span className="admin-tab-count">{orders.length}</span>
           </button>
 
@@ -421,7 +421,7 @@ export default function Admin() {
             className={`admin-tab-btn ${activeTab === 'tickets' ? 'active' : ''}`}
             onClick={() => setActiveTab('tickets')}
           >
-            <span>ðŸŽ« Support Desk</span>
+            <span>🎫 Support Desk</span>
             {openTicketsCount > 0 ? (
               <span className="admin-tab-count" style={{ background: '#e35c00', color: '#fff' }}>
                 {openTicketsCount} open
@@ -435,7 +435,7 @@ export default function Admin() {
             className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            <span>ðŸ‘¥ Customer Accounts</span>
+            <span>👥 Customer Accounts</span>
             <span className="admin-tab-count">{users.length}</span>
           </button>
 
@@ -443,7 +443,7 @@ export default function Admin() {
             className={`admin-tab-btn ${activeTab === 'traffic' ? 'active' : ''}`}
             onClick={() => setActiveTab('traffic')}
           >
-            <span>ðŸ“ˆ Traffic &amp; Analytics</span>
+            <span>📈 Traffic &amp; Analytics</span>
             {visits && <span className="admin-tab-count">{visits.today} today</span>}
           </button>
         </div>
@@ -535,9 +535,9 @@ export default function Admin() {
                                 color: order.paymentStatus === 'paid' ? '#137333' : '#e35c00',
                               }}
                             >
-                              {order.paymentMethod === 'online' ? 'Online (Paid) âœ“' : 'Cash on Delivery'}
+                              {order.paymentMethod === 'online' ? 'Online (Paid) ✓' : 'Cash on Delivery'}
                             </span>
-                            {order.amount ? <strong style={{ fontSize: '0.95rem' }}>â‚¹{order.amount}</strong> : null}
+                            {order.amount ? <strong style={{ fontSize: '0.95rem' }}>₹{order.amount}</strong> : null}
                             {order.transactionId && (
                               <span style={{ fontSize: '0.72rem', color: '#686b78', fontFamily: 'monospace' }}>
                                 {order.transactionId}
@@ -641,7 +641,7 @@ export default function Admin() {
                         </td>
                         <td>
                           <span className={ticket.status === 'resolved' ? 'ticket-status-resolved' : 'ticket-status-open'}>
-                            {ticket.status === 'resolved' ? 'Resolved âœ“' : 'Open'}
+                            {ticket.status === 'resolved' ? 'Resolved ✓' : 'Open'}
                           </span>
                         </td>
                         <td>
@@ -688,7 +688,7 @@ export default function Admin() {
                         <td><code style={{ fontSize: '0.85rem' }}>{u.id}</code></td>
                         <td><strong>{u.name}</strong></td>
                         <td>{u.phone}</td>
-                        <td>{u.email || 'â€”'}</td>
+                        <td>{u.email || '—'}</td>
                         <td>
                           <span className="nav-role-badge">
                             {u.role || 'customer'}

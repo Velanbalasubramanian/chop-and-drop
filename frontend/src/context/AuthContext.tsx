@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   // On first load, if a token was saved from a previous visit, verify it
-  // and restore the session â€” so the customer doesn't have to log in every time.
+  // and restore the session — so the customer doesn't have to log in every time.
   useEffect(() => {
     if (!token) {
       setLoading(false)

@@ -7,7 +7,7 @@ const steps = [
   {
     icon: KnifeIcon,
     title: 'You pick what you need',
-    body: 'Choose from ready packs â€” sambar mix, poriyal mix, salad mix â€” or tell us your regular order.',
+    body: 'Choose from ready packs — sambar mix, poriyal mix, salad mix — or tell us your regular order.',
   },
   {
     icon: ClockIcon,
@@ -33,7 +33,7 @@ export default function Home() {
             Start cooking straight away.
           </h1>
           <p className="hero-sub">
-            Easy Foods washes, cuts and delivers vegetables every morning â€” for busy homes, hostels
+            Easy Foods washes, cuts and delivers vegetables every morning — for busy homes, hostels
             and small hotel kitchens across Chennai. You save the forty minutes at the cutting board.
           </p>
           <div className="hero-actions">
@@ -46,16 +46,16 @@ export default function Home() {
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
-          <div className="hero-floating-badge hero-badge-top">ðŸ¥• 100% Farm Fresh</div>
+          <div className="hero-floating-badge hero-badge-top">🌱 100% Farm Fresh</div>
           <div className="hero-card hero-card-1">
             <span className="hero-card-label">Today's cut</span>
             <span className="hero-card-value">Sambar Mix</span>
           </div>
           <div className="hero-card hero-card-2">
             <span className="hero-card-label">Delivery slot</span>
-            <span className="hero-card-value">6:00 â€“ 7:00 AM</span>
+            <span className="hero-card-value">6:00 – 7:00 AM</span>
           </div>
-          <div className="hero-floating-badge hero-badge-bottom">âš¡ Ready to Cook Â· 0 Prep</div>
+          <div className="hero-floating-badge hero-badge-bottom">⚡ Ready to Cook · 0 Prep</div>
           <div className="hero-blob" />
         </div>
       </section>
@@ -77,7 +77,7 @@ export default function Home() {
         <div className="section-heading-row">
           <h2>Popular this week</h2>
           <Link to="/products" className="text-link">
-            View all packs â†’
+            View all packs →
           </Link>
         </div>
         <div className="product-grid">
