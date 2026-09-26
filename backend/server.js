@@ -1,4 +1,4 @@
-﻿const path = require('path')
+const path = require('path')
 const fs = require('fs')
 require('dotenv').config({ path: path.join(__dirname, '.env') })
 const http = require('http')
@@ -75,8 +75,11 @@ app.use('/api', (req, res) => {
 // Production Static Assets & SPA Routing
 const adminDist = path.join(__dirname, '..', 'admin', 'dist')
 if (fs.existsSync(adminDist)) {
+  app.get('/admin', (req, res) => {
+    res.redirect(301, '/admin/')
+  })
   app.use('/admin', express.static(adminDist))
-  app.get(['/admin', '/admin/*'], (req, res) => {
+  app.get('/admin/*', (req, res) => {
     res.sendFile(path.join(adminDist, 'index.html'))
   })
 }
