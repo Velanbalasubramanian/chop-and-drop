@@ -1,4 +1,4 @@
-import { LeafIcon } from '../components/Icons'
+﻿import { LeafIcon } from '../components/Icons'
 
 export default function About() {
   return (
@@ -8,13 +8,13 @@ export default function About() {
       <div className="about-grid">
         <div className="about-copy">
           <p>
-            Chop &amp; Drop began in a Chennai kitchen where the vegetables took longer to cut than the
+            Easy Foods began in a Chennai kitchen where the vegetables took longer to cut than the
             sambar took to cook. We started sourcing straight from Koyambedu each night, cleaning and
             cutting before sunrise, and dropping packs at doorsteps before the morning rush began.
           </p>
           <p>
             Today we work with families, PG hostels and small hotel kitchens who would rather spend
-            their morning cooking than cutting. Every vegetable is cut the same day it's delivered —
+            their morning cooking than cutting. Every vegetable is cut the same day it's delivered â€”
             nothing is chopped and stored for later.
           </p>
           <ul className="about-list">
@@ -30,9 +30,10 @@ export default function About() {
             "Our cooks used to lose an hour every morning to the cutting board. Now that hour goes into
             the food itself."
           </p>
-          <span className="about-panel-attribution">— A mess kitchen we supply in Velachery</span>
+          <span className="about-panel-attribution">â€” A mess kitchen we supply in Velachery</span>
         </div>
       </div>
     </section>
   )
 }
+

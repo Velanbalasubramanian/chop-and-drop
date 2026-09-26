@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import PasswordInput from './PasswordInput'
 
 interface PaymentModalProps {
@@ -73,9 +73,9 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
         >
           <div>
             <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.85 }}>
-              Chop &amp; Drop Secure Pay · {customerName}
+              Easy Foods Secure Pay Â· {customerName}
             </div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 700, marginTop: '2px' }}>₹{amount}</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 700, marginTop: '2px' }}>â‚¹{amount}</div>
           </div>
           <button
             type="button"
@@ -95,7 +95,7 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
               justifyContent: 'center',
             }}
           >
-            ✕
+            âœ•
           </button>
         </div>
 
@@ -117,7 +117,7 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
               <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
               <h3 style={{ margin: '0 0 0.5rem 0', color: '#294a2c' }}>Processing Secure Payment</h3>
               <p style={{ color: '#686b78', fontSize: '0.9rem', margin: 0 }}>
-                Communicating with your UPI / Bank gateway…
+                Communicating with your UPI / Bank gatewayâ€¦
               </p>
             </div>
           ) : success ? (
@@ -136,13 +136,13 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                   margin: '0 auto 1rem',
                 }}
               >
-                ✓
+                âœ“
               </div>
               <h3 style={{ margin: '0 0 0.5rem 0', color: '#137333' }}>Payment Verified!</h3>
               <p style={{ color: '#686b78', fontSize: '0.88rem', margin: '0 0 0.5rem 0' }}>
                 Transaction ID: <strong>{txnId}</strong>
               </p>
-              <p style={{ color: '#0f8a3d', fontSize: '0.9rem', fontWeight: 600 }}>Placing your order…</p>
+              <p style={{ color: '#0f8a3d', fontSize: '0.9rem', fontWeight: 600 }}>Placing your orderâ€¦</p>
             </div>
           ) : (
             <div>
@@ -214,9 +214,9 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                 <div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
                     {[
-                      { id: 'gpay', label: 'Google Pay', icon: '🟢' },
-                      { id: 'phonepe', label: 'PhonePe', icon: '🟣' },
-                      { id: 'paytm', label: 'Paytm', icon: '🔵' },
+                      { id: 'gpay', label: 'Google Pay', icon: 'ðŸŸ¢' },
+                      { id: 'phonepe', label: 'PhonePe', icon: 'ðŸŸ£' },
+                      { id: 'paytm', label: 'Paytm', icon: 'ðŸ”µ' },
                     ].map((app) => (
                       <button
                         key={app.id}
@@ -271,10 +271,10 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                         fontSize: '2.5rem',
                       }}
                     >
-                      📱
+                      ðŸ“±
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#0f8a3d', fontWeight: 600 }}>
-                      ✓ Verified Merchant: Chop &amp; Drop Fresh
+                      âœ“ Verified Merchant: Easy Foods Fresh
                     </span>
                   </div>
 
@@ -307,7 +307,7 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                     </label>
                     <input
                       type="text"
-                      placeholder="4532 •••• •••• 8910"
+                      placeholder="4532 â€¢â€¢â€¢â€¢ â€¢â€¢â€¢â€¢ 8910"
                       defaultValue="4532 8901 2345 6789"
                       style={{
                         width: '100%',
@@ -374,7 +374,7 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                         fontWeight: 500,
                       }}
                     >
-                      🏦 {bank}
+                      ðŸ¦ {bank}
                     </button>
                   ))}
                 </div>
@@ -386,12 +386,12 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                 onClick={handleAuthorizePayment}
                 style={{ width: '100%', justifyContent: 'center', marginTop: '1.25rem', padding: '0.9rem' }}
               >
-                Pay ₹{amount} Securely
+                Pay â‚¹{amount} Securely
               </button>
 
               <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
                 <span style={{ fontSize: '0.75rem', color: '#686b78' }}>
-                  🔒 256-Bit Encrypted Payment Simulation
+                  ðŸ”’ 256-Bit Encrypted Payment Simulation
                 </span>
               </div>
             </div>
@@ -401,3 +401,4 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
     </div>
   )
 }
+

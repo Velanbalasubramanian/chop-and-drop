@@ -1,7 +1,7 @@
-const nodemailer = require('nodemailer')
+﻿const nodemailer = require('nodemailer')
 
 // Sends the customer an order confirmation email. If SMTP credentials
-// are not set in .env, this quietly skips and logs why — order
+// are not set in .env, this quietly skips and logs why â€” order
 // creation still succeeds either way.
 function getTransporter() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env
@@ -23,7 +23,7 @@ async function sendOrderConfirmationEmail(order) {
 
   const transporter = getTransporter()
   if (!transporter) {
-    console.log('[mailer] SMTP not configured (.env) — skipping email send.')
+    console.log('[mailer] SMTP not configured (.env) â€” skipping email send.')
     return { sent: false, reason: 'smtp-not-configured' }
   }
 
@@ -31,14 +31,14 @@ async function sendOrderConfirmationEmail(order) {
     await transporter.sendMail({
       from: process.env.MAIL_FROM || process.env.SMTP_USER,
       to: order.email,
-      subject: `Chop & Drop — order ${order.id} received`,
+      subject: `Easy Foods â€” order ${order.id} received`,
       text:
         `Hi ${order.name},\n\n` +
         `We've received your order (ID: ${order.id}).\n` +
         `Items: ${order.items}\n` +
         `Delivery slot: ${order.deliverySlot}\n\n` +
         `Track it anytime at: /track (use order ID + your phone number)\n\n` +
-        `— Chop & Drop`,
+        `â€” Easy Foods`,
     })
     return { sent: true }
   } catch (err) {
@@ -48,3 +48,4 @@ async function sendOrderConfirmationEmail(order) {
 }
 
 module.exports = { sendOrderConfirmationEmail }
+

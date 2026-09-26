@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
 export default function Footer() {
   const adminUrl =
@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer-inner">
         <div>
-          <div className="footer-brand">Chop &amp; Drop</div>
+          <div className="footer-brand">Easy Foods</div>
           <p className="footer-tagline">Vegetables, cut and delivered before your kadai heats up.</p>
           <a href={adminUrl} target="_blank" rel="noopener noreferrer" className="footer-admin-link">
             Staff Portal ↗
@@ -24,13 +24,13 @@ export default function Footer() {
         <div className="footer-col">
           <span className="footer-heading">Talk to us</span>
           <p>+91 98765 43210</p>
-          <p>hello@chopanddrop.in</p>
+          <p>hello@easyfoods.in</p>
           <Link to="/help" style={{ color: '#fc8019', fontWeight: 600, fontSize: '0.88rem' }}>
             Help &amp; Support ➔
           </Link>
         </div>
       </div>
-      <div className="footer-bottom">© {new Date().getFullYear()} Chop &amp; Drop. All rights reserved.</div>
+      <div className="footer-bottom">© {new Date().getFullYear()} Easy Foods. All rights reserved.</div>
     </footer>
   )
 }

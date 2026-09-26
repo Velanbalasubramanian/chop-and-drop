@@ -145,7 +145,7 @@ export default function Navbar() {
         {/* Brand */}
         <NavLink to="/" className="brand" onClick={closeMobile}>
           <LeafIcon className="brand-icon" />
-          <span>Chop &amp; Drop</span>
+          <span>Easy Foods</span>
         </NavLink>
 
         {/* Desktop Navigation Links (Reduced menus with sleek More dropdown) */}

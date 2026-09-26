@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+﻿import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import type { CartItem } from '../types'
 import { products } from '../data/products'
 
@@ -14,7 +14,7 @@ interface CartContextValue {
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
-const STORAGE_KEY = 'chopanddrop_cart'
+const STORAGE_KEY = 'easyfoods_cart'
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -66,7 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, 0)
 
   // Turns the cart into the plain-text "items" line the order form/backend expects
-  // — e.g. "2x Sambar Vegetable Mix, 1x Salad Mix"
+  // â€” e.g. "2x Sambar Vegetable Mix, 1x Salad Mix"
   function formatForOrder() {
     return items
       .map((i) => {
@@ -91,3 +91,4 @@ export function useCart() {
   if (!ctx) throw new Error('useCart must be used inside a CartProvider')
   return ctx
 }
+

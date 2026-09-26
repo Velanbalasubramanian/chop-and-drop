@@ -1,4 +1,4 @@
-const path = require('path')
+﻿const path = require('path')
 const fs = require('fs')
 require('dotenv').config({ path: path.join(__dirname, '.env') })
 const http = require('http')
@@ -56,7 +56,7 @@ app.use('/api', apiLimiter)
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'chop-and-drop-backend', timestamp: new Date().toISOString() })
+  res.json({ ok: true, service: 'easy-foods-backend', timestamp: new Date().toISOString() })
 })
 
 // Route Mounting
@@ -93,7 +93,7 @@ if (fs.existsSync(frontendDist)) {
 initSocket(server, allowedOrigins)
 
 server.listen(PORT, () => {
-  console.log(`[Server] Chop & Drop backend running on http://localhost:${PORT}`)
+  console.log(`[Server] Easy Foods backend running on http://localhost:${PORT}`)
   console.log(`[Server] Real-time WebSockets (Socket.IO) enabled`)
 
   if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'changeme') {
@@ -103,3 +103,4 @@ server.listen(PORT, () => {
     console.log('[Security Note] JWT_SECRET not configured. Please set a strong random secret in backend/.env.')
   }
 })
+

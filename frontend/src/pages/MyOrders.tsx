@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { fetchMyOrders, fetchMyTransactions, requestOrderRefund } from '../api'
@@ -102,7 +102,7 @@ export default function MyOrders() {
 
     try {
       const fullReason = refundCustomNotes.trim()
-        ? `${refundReason} — ${refundCustomNotes.trim()}`
+        ? `${refundReason} â€” ${refundCustomNotes.trim()}`
         : refundReason
 
       const result = await requestOrderRefund(
@@ -134,7 +134,7 @@ export default function MyOrders() {
     return (
       <section className="section page-section">
         <p className="page-intro" style={{ textAlign: 'center', padding: '3rem' }}>
-          Loading your account…
+          Loading your accountâ€¦
         </p>
       </section>
     )
@@ -214,7 +214,7 @@ export default function MyOrders() {
             gap: '8px',
           }}
         >
-          <span>📦 Previous Orders</span>
+          <span>ðŸ“¦ Previous Orders</span>
           <span
             style={{
               background: activeTab === 'orders' ? '#fff4eb' : '#e0e0e0',
@@ -248,7 +248,7 @@ export default function MyOrders() {
             gap: '8px',
           }}
         >
-          <span>💳 Transaction History</span>
+          <span>ðŸ’³ Transaction History</span>
           <span
             style={{
               background: activeTab === 'transactions' ? '#fff4eb' : '#e0e0e0',
@@ -263,7 +263,7 @@ export default function MyOrders() {
         </button>
       </div>
 
-      {loading && <p className="page-intro">Loading your records…</p>}
+      {loading && <p className="page-intro">Loading your recordsâ€¦</p>}
       {error && <p className="form-status form-status-error">{error}</p>}
 
       {/* TAB 1: PREVIOUS ORDERS */}
@@ -279,13 +279,13 @@ export default function MyOrders() {
                 border: '1px solid #ececee',
               }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🥗</div>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸ¥—</div>
               <h2>No previous orders yet</h2>
               <p style={{ color: '#686b78', maxWidth: '420px', margin: '0 auto 1.5rem' }}>
                 You haven't placed any chopped-vegetable orders yet. Browse our freshly curated packs and get cooking!
               </p>
               <Link to="/products" className="btn btn-primary">
-                Browse Fresh Packs ➔
+                Browse Fresh Packs âž”
               </Link>
             </div>
           ) : (
@@ -332,7 +332,7 @@ export default function MyOrders() {
                               color: statusTheme.color,
                             }}
                           >
-                            ● {STATUS_LABELS[order.status] || order.status}
+                            â— {STATUS_LABELS[order.status] || order.status}
                           </span>
                         </div>
                         <div style={{ fontSize: '0.82rem', color: '#686b78', marginTop: '2px' }}>
@@ -343,7 +343,7 @@ export default function MyOrders() {
 
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#294a2c' }}>
-                          ₹{order.amount || 0}
+                          â‚¹{order.amount || 0}
                         </div>
                         <span
                           style={{
@@ -370,11 +370,11 @@ export default function MyOrders() {
                           }}
                         >
                           {order.paymentStatus === 'refunded'
-                            ? `Refunded ₹${order.refundAmount || order.amount} ✓`
+                            ? `Refunded â‚¹${order.refundAmount || order.amount} âœ“`
                             : order.paymentStatus === 'refund_requested'
-                              ? 'Refund In Review ⏳'
+                              ? 'Refund In Review â³'
                               : order.paymentMethod === 'online'
-                                ? 'Online Paid ✓'
+                                ? 'Online Paid âœ“'
                                 : 'Cash on Delivery (Pending)'}
                         </span>
                       </div>
@@ -404,7 +404,7 @@ export default function MyOrders() {
                           {order.address}
                         </p>
                         <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#fc8019', fontWeight: 600 }}>
-                          ⏰ Slot: {order.deliverySlot}
+                          â° Slot: {order.deliverySlot}
                         </p>
                       </div>
 
@@ -439,9 +439,9 @@ export default function MyOrders() {
                         }}
                       >
                         <div>
-                          <strong style={{ color: '#6b21a8' }}>💸 Refund Completed: </strong>
+                          <strong style={{ color: '#6b21a8' }}>ðŸ’¸ Refund Completed: </strong>
                           <span style={{ color: '#4c1d95' }}>
-                            ₹{order.refundAmount || order.amount} has been successfully refunded.
+                            â‚¹{order.refundAmount || order.amount} has been successfully refunded.
                           </span>
                           {order.refundReason && (
                             <div style={{ color: '#6b21a8', fontSize: '0.8rem', marginTop: '2px' }}>
@@ -478,9 +478,9 @@ export default function MyOrders() {
                           fontSize: '0.85rem',
                         }}
                       >
-                        <strong style={{ color: '#b45309' }}>⏳ Refund Request Under Review: </strong>
+                        <strong style={{ color: '#b45309' }}>â³ Refund Request Under Review: </strong>
                         <span style={{ color: '#92400e' }}>
-                          Our team is verifying your request ({order.refundReason || 'Order issue'}). Refund of ₹{order.refundAmount || order.amount} will be processed shortly.
+                          Our team is verifying your request ({order.refundReason || 'Order issue'}). Refund of â‚¹{order.refundAmount || order.amount} will be processed shortly.
                         </span>
                       </div>
                     )}
@@ -503,7 +503,7 @@ export default function MyOrders() {
                           className="btn btn-primary"
                           style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
                         >
-                          Track Live Delivery ➔
+                          Track Live Delivery âž”
                         </Link>
                         <button
                           type="button"
@@ -511,7 +511,7 @@ export default function MyOrders() {
                           className="btn btn-ghost"
                           style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
                         >
-                          📄 View Receipt / Bill
+                          ðŸ“„ View Receipt / Bill
                         </button>
 
                         {/* Request Refund button for eligible orders */}
@@ -533,7 +533,7 @@ export default function MyOrders() {
                               background: '#fffaf5',
                             }}
                           >
-                            ↩ Request Refund
+                            â†© Request Refund
                           </button>
                         )}
                       </div>
@@ -543,7 +543,7 @@ export default function MyOrders() {
                           to={`/help`}
                           style={{ fontSize: '0.85rem', color: '#686b78', textDecoration: 'none' }}
                         >
-                          Need help with this order? <span style={{ color: '#fc8019', fontWeight: 600 }}>Support ➔</span>
+                          Need help with this order? <span style={{ color: '#fc8019', fontWeight: 600 }}>Support âž”</span>
                         </Link>
                       </div>
                     </div>
@@ -569,7 +569,7 @@ export default function MyOrders() {
           >
             <div style={{ background: '#ffffff', borderRadius: '12px', padding: '1.25rem', border: '1px solid #ececee', boxShadow: 'var(--shadow-card)' }}>
               <div style={{ color: '#686b78', fontSize: '0.82rem', fontWeight: 600, textTransform: 'uppercase' }}>Total Purchases</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#294a2c', marginTop: '4px' }}>₹{totalSpent}</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#294a2c', marginTop: '4px' }}>â‚¹{totalSpent}</div>
               <div style={{ fontSize: '0.78rem', color: '#137333', marginTop: '2px' }}>Across {orders.length} orders</div>
             </div>
 
@@ -597,13 +597,13 @@ export default function MyOrders() {
                 border: '1px solid #ececee',
               }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💳</div>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸ’³</div>
               <h2>No transactions recorded yet</h2>
               <p style={{ color: '#686b78', margin: '0 0 1.5rem 0' }}>
                 Your payment receipts and transaction records will appear here automatically.
               </p>
               <Link to="/products" className="btn btn-primary">
-                Start Shopping ➔
+                Start Shopping âž”
               </Link>
             </div>
           ) : (
@@ -634,24 +634,24 @@ export default function MyOrders() {
                           </Link>
                         </td>
                         <td style={{ padding: '1rem', color: '#686b78', fontSize: '0.85rem' }}>
-                          {new Date(txn.date).toLocaleDateString()} · {new Date(txn.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(txn.date).toLocaleDateString()} Â· {new Date(txn.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td style={{ padding: '1rem' }}>
                           {txn.paymentMethod === 'online' ? (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              💳 UPI / Online
+                              ðŸ’³ UPI / Online
                             </span>
                           ) : (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              💵 Cash on Delivery
+                              ðŸ’µ Cash on Delivery
                             </span>
                           )}
                         </td>
                         <td style={{ padding: '1rem', fontWeight: 700, color: '#294a2c' }}>
-                          <div>₹{txn.amount}</div>
+                          <div>â‚¹{txn.amount}</div>
                           {txn.paymentStatus === 'refunded' && (
                             <div style={{ fontSize: '0.75rem', color: '#6b21a8', fontWeight: 600 }}>
-                              -₹{txn.refundAmount || txn.amount} reversed
+                              -â‚¹{txn.refundAmount || txn.amount} reversed
                             </div>
                           )}
                         </td>
@@ -684,11 +684,11 @@ export default function MyOrders() {
                               }}
                             >
                               {txn.paymentStatus === 'refunded'
-                                ? 'REFUNDED ✓'
+                                ? 'REFUNDED âœ“'
                                 : txn.paymentStatus === 'refund_requested'
-                                  ? 'REFUND IN REVIEW ⏳'
+                                  ? 'REFUND IN REVIEW â³'
                                   : txn.paymentStatus === 'paid'
-                                    ? 'PAID ✓'
+                                    ? 'PAID âœ“'
                                     : 'PENDING'}
                             </span>
                             {txn.refundId && (
@@ -770,7 +770,7 @@ export default function MyOrders() {
             >
               <div>
                 <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.85 }}>
-                  Chop &amp; Drop · Official Receipt
+                  Easy Foods Â· Official Receipt
                 </div>
                 <h2 style={{ color: '#fff', margin: '4px 0 0 0', fontSize: '1.4rem' }}>
                   {selectedReceipt.id}
@@ -794,7 +794,7 @@ export default function MyOrders() {
                   fontSize: '1.2rem',
                 }}
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -845,11 +845,11 @@ export default function MyOrders() {
                     }}
                   >
                     {selectedReceipt.paymentStatus === 'refunded'
-                      ? 'REFUNDED ✓'
+                      ? 'REFUNDED âœ“'
                       : selectedReceipt.paymentStatus === 'refund_requested'
-                        ? 'REFUND REQUESTED ⏳'
+                        ? 'REFUND REQUESTED â³'
                         : selectedReceipt.paymentStatus === 'paid'
-                          ? 'PAID ✓'
+                          ? 'PAID âœ“'
                           : 'PENDING'}
                   </span>
                 </div>
@@ -870,7 +870,7 @@ export default function MyOrders() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#7e22ce', marginTop: '2px' }}>
                       <span>Refund Amount:</span>
-                      <strong>₹{selectedReceipt.refundAmount || selectedReceipt.amount}</strong>
+                      <strong>â‚¹{selectedReceipt.refundAmount || selectedReceipt.amount}</strong>
                     </div>
                     {selectedReceipt.refundReason && (
                       <div style={{ fontSize: '0.78rem', color: '#6b21a8', marginTop: '2px' }}>
@@ -893,7 +893,7 @@ export default function MyOrders() {
                   }}
                 >
                   <span>Total Amount:</span>
-                  <span>₹{selectedReceipt.amount || 0}</span>
+                  <span>â‚¹{selectedReceipt.amount || 0}</span>
                 </div>
               </div>
 
@@ -904,7 +904,7 @@ export default function MyOrders() {
                   className="btn btn-ghost"
                   style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem' }}
                 >
-                  🖨️ Print Receipt
+                  ðŸ–¨ï¸ Print Receipt
                 </button>
                 <button
                   type="button"
@@ -987,7 +987,7 @@ export default function MyOrders() {
                   fontSize: '1.2rem',
                 }}
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1008,7 +1008,7 @@ export default function MyOrders() {
                 <div>
                   <div style={{ fontSize: '0.8rem', color: '#9a3412', fontWeight: 600 }}>Eligible Refund Amount</div>
                   <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#c2410c' }}>
-                    ₹{refundTargetOrder.amount || 0}
+                    â‚¹{refundTargetOrder.amount || 0}
                   </div>
                 </div>
                 <span
@@ -1021,7 +1021,7 @@ export default function MyOrders() {
                     color: refundTargetOrder.paymentMethod === 'online' ? '#137333' : '#3d4152',
                   }}
                 >
-                  {refundTargetOrder.paymentMethod === 'online' ? 'Online Paid ✓' : 'Cash on Delivery'}
+                  {refundTargetOrder.paymentMethod === 'online' ? 'Online Paid âœ“' : 'Cash on Delivery'}
                 </span>
               </div>
 
@@ -1037,7 +1037,7 @@ export default function MyOrders() {
                     border: '1px solid #ceead6',
                   }}
                 >
-                  ✓ {refundMsg}
+                  âœ“ {refundMsg}
                 </div>
               )}
 
@@ -1070,12 +1070,12 @@ export default function MyOrders() {
                       fontSize: '0.9rem',
                     }}
                   >
-                    <option value="Damaged / Spoiled Vegetables">Damaged / Spoiled Vegetables (காய்கறிகள் பழுதடைந்துள்ளது)</option>
-                    <option value="Delivery Delayed beyond slot">Delivery Delayed beyond slot (டெலிவரி தாமதம்)</option>
-                    <option value="Missing or Wrong Item">Missing or Wrong Item (தவறான பொருள்)</option>
-                    <option value="Order Cancelled by Customer">Order Cancelled by Customer (ஆர்டர் ரத்து)</option>
-                    <option value="Quality Concern">Quality / Hygiene Concern (தர குறைபாடு)</option>
-                    <option value="Other">Other Reason (மற்றவை)</option>
+                    <option value="Damaged / Spoiled Vegetables">Damaged / Spoiled Vegetables (à®•à®¾à®¯à¯à®•à®±à®¿à®•à®³à¯ à®ªà®´à¯à®¤à®Ÿà¯ˆà®¨à¯à®¤à¯à®³à¯à®³à®¤à¯)</option>
+                    <option value="Delivery Delayed beyond slot">Delivery Delayed beyond slot (à®Ÿà¯†à®²à®¿à®µà®°à®¿ à®¤à®¾à®®à®¤à®®à¯)</option>
+                    <option value="Missing or Wrong Item">Missing or Wrong Item (à®¤à®µà®±à®¾à®© à®ªà¯Šà®°à¯à®³à¯)</option>
+                    <option value="Order Cancelled by Customer">Order Cancelled by Customer (à®†à®°à¯à®Ÿà®°à¯ à®°à®¤à¯à®¤à¯)</option>
+                    <option value="Quality Concern">Quality / Hygiene Concern (à®¤à®° à®•à¯à®±à¯ˆà®ªà®¾à®Ÿà¯)</option>
+                    <option value="Other">Other Reason (à®®à®±à¯à®±à®µà¯ˆ)</option>
                   </select>
                 </label>
 
@@ -1137,7 +1137,7 @@ export default function MyOrders() {
                     borderColor: '#c2410c',
                   }}
                 >
-                  {refundLoading ? 'Submitting…' : `Submit Refund (₹${refundTargetOrder.amount || 0})`}
+                  {refundLoading ? 'Submittingâ€¦' : `Submit Refund (â‚¹${refundTargetOrder.amount || 0})`}
                 </button>
               </div>
             </form>
@@ -1147,3 +1147,4 @@ export default function MyOrders() {
     </section>
   )
 }
+

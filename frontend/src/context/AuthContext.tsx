@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+﻿import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import type { User } from '../types'
 import { fetchMe, login as apiLogin, register as apiRegister } from '../api'
 
@@ -13,7 +13,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
-const STORAGE_KEY = 'chopanddrop_token'
+const STORAGE_KEY = 'easyfoods_token'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   // On first load, if a token was saved from a previous visit, verify it
-  // and restore the session — so the customer doesn't have to log in every time.
+  // and restore the session â€” so the customer doesn't have to log in every time.
   useEffect(() => {
     if (!token) {
       setLoading(false)
@@ -74,3 +74,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used inside an AuthProvider')
   return ctx
 }
+

@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react'
+﻿import { FormEvent, useCallback, useEffect, useState } from 'react'
 import {
   adminLogin,
   approveOrderRefund,
@@ -109,7 +109,7 @@ export default function App() {
     // Real-time: customer placed a new order
     socket.on('new_order', (newOrder: AdminOrder) => {
       setOrders((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
-      setNotification(`🟢 New Order Placed: ${newOrder.id} from ${newOrder.name} (₹${newOrder.amount || 0})`)
+      setNotification(`ðŸŸ¢ New Order Placed: ${newOrder.id} from ${newOrder.name} (â‚¹${newOrder.amount || 0})`)
       setLastUpdated(new Date())
       setTimeout(() => setNotification(''), 8000)
     })
@@ -123,7 +123,7 @@ export default function App() {
     // Real-time: customer raised a support ticket
     socket.on('new_ticket', (ticket: SupportTicket) => {
       setTickets((prev) => [ticket, ...prev.filter((t) => t.id !== ticket.id)])
-      setNotification(`🎫 New Support Ticket: ${ticket.id} from ${ticket.name} (${ticket.issueType})`)
+      setNotification(`ðŸŽ« New Support Ticket: ${ticket.id} from ${ticket.name} (${ticket.issueType})`)
       setLastUpdated(new Date())
       setTimeout(() => setNotification(''), 8000)
     })
@@ -133,8 +133,8 @@ export default function App() {
       setOrders((prev) => [updatedOrder, ...prev.filter((o) => o.id !== updatedOrder.id)])
       const msg =
         updatedOrder.paymentStatus === 'refunded'
-          ? `💸 Refund Approved: Order ${updatedOrder.id} (${updatedOrder.refundId})`
-          : `⏳ Refund Request Received: Order ${updatedOrder.id} from ${updatedOrder.name}`
+          ? `ðŸ’¸ Refund Approved: Order ${updatedOrder.id} (${updatedOrder.refundId})`
+          : `â³ Refund Request Received: Order ${updatedOrder.id} from ${updatedOrder.name}`
       setNotification(msg)
       setLastUpdated(new Date())
       setTimeout(() => setNotification(''), 8000)
@@ -212,7 +212,7 @@ export default function App() {
     try {
       const res = await approveOrderRefund(token, orderId)
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...res.order } : o)))
-      setNotification(`✓ Refund approved successfully for ${orderId}: ${res.order.refundId || ''}`)
+      setNotification(`âœ“ Refund approved successfully for ${orderId}: ${res.order.refundId || ''}`)
       setTimeout(() => setNotification(''), 8000)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Could not approve refund.')
@@ -225,7 +225,7 @@ export default function App() {
     try {
       const res = await rejectOrderRefund(token, orderId, reason)
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...res.order } : o)))
-      setNotification(`✕ Refund request rejected for ${orderId}`)
+      setNotification(`âœ• Refund request rejected for ${orderId}`)
       setTimeout(() => setNotification(''), 8000)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Could not reject refund.')
@@ -282,8 +282,8 @@ export default function App() {
     return (
       <div className="admin-login-fullscreen">
         <div className="admin-login-card">
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🛡️</div>
-          <h1 style={{ fontSize: '1.6rem', margin: '0 0 0.3rem', color: '#1b4332' }}>Chop &amp; Drop</h1>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>ðŸ›¡ï¸</div>
+          <h1 style={{ fontSize: '1.6rem', margin: '0 0 0.3rem', color: '#1b4332' }}>Easy Foods</h1>
           <p style={{ fontWeight: 700, color: 'var(--carrot-dark)', margin: '0 0 0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Standalone Admin Portal
           </p>
@@ -320,7 +320,7 @@ export default function App() {
                 border: '1px solid var(--line)',
               }}
             >
-              🔑 <strong>Admin Password:</strong> <code>admin123</code> (defined in <code>backend/.env</code>)
+              ðŸ”‘ <strong>Admin Password:</strong> <code>admin123</code> (defined in <code>backend/.env</code>)
             </div>
 
             <button
@@ -329,7 +329,7 @@ export default function App() {
               disabled={loading}
               style={{ width: '100%', padding: '0.75rem', fontWeight: 600, borderRadius: '6px' }}
             >
-              {loading ? 'Verifying Credentials…' : 'Sign In to Admin Portal'}
+              {loading ? 'Verifying Credentialsâ€¦' : 'Sign In to Admin Portal'}
             </button>
 
             {loginError && (
@@ -341,7 +341,7 @@ export default function App() {
 
           <div style={{ marginTop: '1.75rem', borderTop: '1px solid var(--line)', paddingTop: '1rem' }}>
             <a href="http://localhost:5173" style={{ color: 'var(--leaf-deep)', fontWeight: 600, fontSize: '0.88rem', textDecoration: 'none' }}>
-              🌐 Open Customer Storefront (port 5173) ➔
+              ðŸŒ Open Customer Storefront (port 5173) âž”
             </a>
           </div>
         </div>
@@ -356,8 +356,8 @@ export default function App() {
       <header className="admin-portal-header">
         <div className="admin-portal-header-inner">
           <div className="admin-portal-brand">
-            <span>🛡️</span>
-            <span>Chop &amp; Drop</span>
+            <span>ðŸ›¡ï¸</span>
+            <span>Easy Foods</span>
             <span className="admin-portal-badge">Admin Portal</span>
           </div>
 
@@ -366,19 +366,19 @@ export default function App() {
               className={`admin-pill-badge ${socketConnected ? 'admin-pill-online' : 'admin-pill-connecting'}`}
               style={{ background: socketConnected ? '#2d6a4f' : '#b06000', color: '#ffffff', borderColor: 'transparent' }}
             >
-              {socketConnected ? '🟢 Live Push Active' : '🟡 Socket Connecting…'}
+              {socketConnected ? 'ðŸŸ¢ Live Push Active' : 'ðŸŸ¡ Socket Connectingâ€¦'}
             </span>
             <span
               className="admin-pill-badge"
               style={{ background: '#084298', color: '#cfe2ff', borderColor: 'transparent' }}
             >
-              🍃 MongoDB Engine Connected
+              ðŸƒ MongoDB Engine Connected
             </span>
           </div>
 
           <div className="admin-portal-nav-right">
             <a href="http://localhost:5173" className="admin-view-store-btn" title="Open customer website in new tab" target="_blank" rel="noopener noreferrer">
-              🌐 View Storefront ↗
+              ðŸŒ View Storefront â†—
             </a>
             <button type="button" className="admin-portal-logout-btn" onClick={handleLogout}>
               Log out
@@ -411,7 +411,7 @@ export default function App() {
               onClick={() => setNotification('')}
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#137333' }}
             >
-              ✕
+              âœ•
             </button>
           </div>
         )}
@@ -432,7 +432,7 @@ export default function App() {
               </span>
             )}
             <button className="btn btn-ghost" onClick={() => loadAll(token, true)} disabled={loading} style={{ padding: '0.45rem 0.9rem', fontSize: '0.88rem' }}>
-              {loading ? 'Refreshing…' : '🔄 Refresh Data'}
+              {loading ? 'Refreshingâ€¦' : 'ðŸ”„ Refresh Data'}
             </button>
           </div>
         </div>
@@ -444,7 +444,7 @@ export default function App() {
             <div className="admin-metric-title">Total Orders</div>
           </div>
           <div className="admin-metric-card">
-            <div className="admin-metric-num" style={{ color: '#0f5132' }}>₹{totalRevenue}</div>
+            <div className="admin-metric-num" style={{ color: '#0f5132' }}>â‚¹{totalRevenue}</div>
             <div className="admin-metric-title">Revenue Generated</div>
           </div>
           <div className="admin-metric-card">
@@ -475,7 +475,7 @@ export default function App() {
             className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
-            <span>📦 Orders</span>
+            <span>ðŸ“¦ Orders</span>
             <span className="admin-tab-count">{orders.length}</span>
           </button>
 
@@ -483,7 +483,7 @@ export default function App() {
             className={`admin-tab-btn ${activeTab === 'refunds' ? 'active' : ''}`}
             onClick={() => setActiveTab('refunds')}
           >
-            <span>💸 Refunds &amp; Returns</span>
+            <span>ðŸ’¸ Refunds &amp; Returns</span>
             {pendingRefundsCount > 0 ? (
               <span className="admin-tab-count" style={{ background: '#c2410c', color: '#fff' }}>
                 {pendingRefundsCount} pending
@@ -497,7 +497,7 @@ export default function App() {
             className={`admin-tab-btn ${activeTab === 'tickets' ? 'active' : ''}`}
             onClick={() => setActiveTab('tickets')}
           >
-            <span>🎫 Support Desk</span>
+            <span>ðŸŽ« Support Desk</span>
             {openTicketsCount > 0 ? (
               <span className="admin-tab-count" style={{ background: '#e35c00', color: '#fff' }}>
                 {openTicketsCount} open
@@ -511,7 +511,7 @@ export default function App() {
             className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            <span>👥 Customer Accounts</span>
+            <span>ðŸ‘¥ Customer Accounts</span>
             <span className="admin-tab-count">{users.length}</span>
           </button>
 
@@ -519,7 +519,7 @@ export default function App() {
             className={`admin-tab-btn ${activeTab === 'traffic' ? 'active' : ''}`}
             onClick={() => setActiveTab('traffic')}
           >
-            <span>📈 Traffic &amp; Analytics</span>
+            <span>ðŸ“ˆ Traffic &amp; Analytics</span>
             {visits && <span className="admin-tab-count">{visits.today} today</span>}
           </button>
         </div>
@@ -631,14 +631,14 @@ export default function App() {
                               }}
                             >
                               {order.paymentStatus === 'refunded'
-                                ? `Refunded (${order.refundId || 'REF'}) ✓`
+                                ? `Refunded (${order.refundId || 'REF'}) âœ“`
                                 : order.paymentStatus === 'refund_requested'
-                                  ? 'Refund Requested ⏳'
+                                  ? 'Refund Requested â³'
                                   : order.paymentMethod === 'online'
-                                    ? 'Online (Paid) ✓'
+                                    ? 'Online (Paid) âœ“'
                                     : 'Cash on Delivery'}
                             </span>
-                            {order.amount ? <strong style={{ fontSize: '0.95rem' }}>₹{order.amount}</strong> : null}
+                            {order.amount ? <strong style={{ fontSize: '0.95rem' }}>â‚¹{order.amount}</strong> : null}
                             {order.transactionId && (
                               <span style={{ fontSize: '0.72rem', color: '#686b78', fontFamily: 'monospace' }}>
                                 {order.transactionId}
@@ -660,7 +660,7 @@ export default function App() {
                                     cursor: 'pointer',
                                   }}
                                 >
-                                  ✓ Approve
+                                  âœ“ Approve
                                 </button>
                                 <button
                                   type="button"
@@ -676,7 +676,7 @@ export default function App() {
                                     cursor: 'pointer',
                                   }}
                                 >
-                                  ✕ Reject
+                                  âœ• Reject
                                 </button>
                               </div>
                             )}
@@ -697,7 +697,7 @@ export default function App() {
                                   marginTop: '2px',
                                 }}
                               >
-                                💸 Issue Refund
+                                ðŸ’¸ Issue Refund
                               </button>
                             )}
                           </div>
@@ -780,7 +780,7 @@ export default function App() {
                         <td>
                           <strong style={{ color: 'var(--leaf-deep)', fontSize: '0.95rem' }}>{refund.id}</strong>
                           <div className="admin-subtext">
-                            {new Date(refund.receivedAt).toLocaleDateString()} ·{' '}
+                            {new Date(refund.receivedAt).toLocaleDateString()} Â·{' '}
                             {new Date(refund.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
@@ -810,10 +810,10 @@ export default function App() {
                         </td>
                         <td>
                           <strong style={{ fontSize: '1.05rem', color: '#c2410c' }}>
-                            ₹{refund.refundAmount || refund.amount || 0}
+                            â‚¹{refund.refundAmount || refund.amount || 0}
                           </strong>
                           <div className="admin-subtext" style={{ fontSize: '0.75rem' }}>
-                            Orig: ₹{refund.amount} ({refund.paymentMethod})
+                            Orig: â‚¹{refund.amount} ({refund.paymentMethod})
                           </div>
                         </td>
                         <td>
@@ -830,7 +830,7 @@ export default function App() {
                                 color: refund.paymentStatus === 'refunded' ? '#6b21a8' : '#b06000',
                               }}
                             >
-                              {refund.paymentStatus === 'refunded' ? 'SETTLED ✓' : 'PENDING REVIEW ⏳'}
+                              {refund.paymentStatus === 'refunded' ? 'SETTLED âœ“' : 'PENDING REVIEW â³'}
                             </span>
                             {refund.refundId && (
                               <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', fontWeight: 700, color: '#6b21a8' }}>
@@ -856,7 +856,7 @@ export default function App() {
                                   cursor: 'pointer',
                                 }}
                               >
-                                ✓ Approve &amp; Issue REF-ID
+                                âœ“ Approve &amp; Issue REF-ID
                               </button>
                               <button
                                 type="button"
@@ -872,12 +872,12 @@ export default function App() {
                                   cursor: 'pointer',
                                 }}
                               >
-                                ✕ Reject
+                                âœ• Reject
                               </button>
                             </div>
                           ) : refund.paymentStatus === 'refunded' ? (
                             <span style={{ fontSize: '0.8rem', color: '#137333', fontWeight: 600 }}>
-                              ✓ Completed
+                              âœ“ Completed
                             </span>
                           ) : (
                             <button
@@ -894,7 +894,7 @@ export default function App() {
                                 cursor: 'pointer',
                               }}
                             >
-                              💸 Approve Refund
+                              ðŸ’¸ Approve Refund
                             </button>
                           )}
                         </td>
@@ -977,7 +977,7 @@ export default function App() {
                         </td>
                         <td>
                           <span className={ticket.status === 'resolved' ? 'ticket-status-resolved' : 'ticket-status-open'}>
-                            {ticket.status === 'resolved' ? 'Resolved ✓' : 'Open'}
+                            {ticket.status === 'resolved' ? 'Resolved âœ“' : 'Open'}
                           </span>
                         </td>
                         <td>
@@ -1024,7 +1024,7 @@ export default function App() {
                         <td><code style={{ fontSize: '0.85rem' }}>{u.id}</code></td>
                         <td><strong>{u.name}</strong></td>
                         <td>{u.phone}</td>
-                        <td>{u.email || '—'}</td>
+                        <td>{u.email || 'â€”'}</td>
                         <td>
                           <span className="nav-role-badge">
                             {u.role || 'customer'}
@@ -1074,3 +1074,4 @@ export default function App() {
     </div>
   )
 }
+

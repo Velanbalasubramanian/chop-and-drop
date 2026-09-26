@@ -1,4 +1,4 @@
-const {
+﻿const {
   isUsingMongo,
   getAllUsers,
   getAllOrders,
@@ -18,7 +18,7 @@ async function run() {
   const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chop_and_drop'
 
   console.log('\n======================================================')
-  console.log('   CHOP & DROP — DATABASE VIEWER')
+  console.log('   EASY FOODS â€” DATABASE VIEWER')
   console.log(`   Active Engine: ${activeEngine}`)
   if (usingMongo) {
     console.log(`   MongoDB URI:   ${mongoUri}`)
@@ -29,7 +29,7 @@ async function run() {
 
   if (target === 'all' || target === 'users') {
     const users = await getAllUsers()
-    console.log(`\n👥 USERS COLLECTION / TABLE (${users.length} records)`)
+    console.log(`\nðŸ‘¥ USERS COLLECTION / TABLE (${users.length} records)`)
     console.log('------------------------------------------------------')
     if (users.length === 0) {
       console.log('No users registered yet.')
@@ -39,7 +39,7 @@ async function run() {
           ID: u.id,
           Name: u.name,
           Phone: u.phone,
-          Email: u.email || '—',
+          Email: u.email || 'â€”',
           Role: u.role,
           'Created At': new Date(u.createdAt).toLocaleString(),
         }))
@@ -49,7 +49,7 @@ async function run() {
 
   if (target === 'all' || target === 'orders') {
     const orders = await getAllOrders()
-    console.log(`\n📦 ORDERS COLLECTION / TABLE (${orders.length} records)`)
+    console.log(`\nðŸ“¦ ORDERS COLLECTION / TABLE (${orders.length} records)`)
     console.log('------------------------------------------------------')
     if (orders.length === 0) {
       console.log('No orders placed yet.')
@@ -59,7 +59,7 @@ async function run() {
           'Order ID': o.id,
           Customer: o.name,
           Phone: o.phone,
-          Amount: `₹${o.amount || 0}`,
+          Amount: `â‚¹${o.amount || 0}`,
           Payment: o.paymentMethod === 'online' ? 'Online (Paid)' : 'COD (Pending)',
           Status: o.status,
           Slot: o.deliverySlot,
@@ -71,7 +71,7 @@ async function run() {
 
   if (target === 'all' || target === 'tickets') {
     const tickets = await getAllSupportTickets()
-    console.log(`\n🎫 SUPPORT TICKETS COLLECTION / TABLE (${tickets.length} records)`)
+    console.log(`\nðŸŽ« SUPPORT TICKETS COLLECTION / TABLE (${tickets.length} records)`)
     console.log('------------------------------------------------------')
     if (tickets.length === 0) {
       console.log('No support tickets raised yet.')
@@ -81,10 +81,10 @@ async function run() {
           'Ticket ID': t.id,
           Customer: t.name,
           Phone: t.phone,
-          'Order ID': t.orderId || '—',
+          'Order ID': t.orderId || 'â€”',
           Category: t.issueType,
           Status: t.status,
-          Message: t.message.length > 30 ? t.message.slice(0, 30) + '…' : t.message,
+          Message: t.message.length > 30 ? t.message.slice(0, 30) + 'â€¦' : t.message,
         }))
       )
     }
@@ -92,7 +92,7 @@ async function run() {
 
   if (target === 'all' || target === 'visits') {
     const visits = await getVisitsSummary()
-    console.log(`\n👁️ SITE VISITS COLLECTION / TABLE (Total: ${visits.total} | Today: ${visits.today})`)
+    console.log(`\nðŸ‘ï¸ SITE VISITS COLLECTION / TABLE (Total: ${visits.total} | Today: ${visits.today})`)
     console.log('------------------------------------------------------')
     if (visits.recent.length === 0) {
       console.log('No site visits logged yet.')
@@ -107,10 +107,10 @@ async function run() {
   }
 
   console.log('\n======================================================')
-  console.log('💡 HOW TO VIEW MONGODB:')
-  console.log('• CLI Command: npm run db:view')
-  console.log('• MongoDB Compass GUI: Connect to mongodb://127.0.0.1:27017 or your Atlas URI')
-  console.log('• Set MongoDB Atlas URI in backend/.env as MONGODB_URI=mongodb+srv://...')
+  console.log('ðŸ’¡ HOW TO VIEW MONGODB:')
+  console.log('â€¢ CLI Command: npm run db:view')
+  console.log('â€¢ MongoDB Compass GUI: Connect to mongodb://127.0.0.1:27017 or your Atlas URI')
+  console.log('â€¢ Set MongoDB Atlas URI in backend/.env as MONGODB_URI=mongodb+srv://...')
   console.log('======================================================\n')
 
   try {
@@ -123,3 +123,4 @@ run().catch((err) => {
   console.error('Error viewing database:', err)
   process.exit(1)
 })
+
