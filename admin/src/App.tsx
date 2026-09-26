@@ -1,4 +1,4 @@
-﻿import { FormEvent, useCallback, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useState } from 'react'
 import {
   adminLogin,
   approveOrderRefund,
@@ -13,6 +13,7 @@ import {
 import { getSocket } from './socket'
 import type { AdminOrder, OrderStatus, SupportTicket, User, VisitsSummary } from './types'
 import PasswordInput from './components/PasswordInput'
+import { ShieldIcon } from './components/Icons'
 
 const STATUS_LABELS: Record<string, string> = {
   received: 'Received',
@@ -282,7 +283,7 @@ export default function App() {
     return (
       <div className="admin-login-fullscreen">
         <div className="admin-login-card">
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🛡️ï¸</div>
+          <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center', color: '#294a2c' }}><ShieldIcon size={42} /></div>
           <h1 style={{ fontSize: '1.6rem', margin: '0 0 0.3rem', color: '#1b4332' }}>Easy Foods</h1>
           <p style={{ fontWeight: 700, color: 'var(--carrot-dark)', margin: '0 0 0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Standalone Admin Portal
@@ -356,7 +357,7 @@ export default function App() {
       <header className="admin-portal-header">
         <div className="admin-portal-header-inner">
           <div className="admin-portal-brand">
-            <span>🛡️ï¸</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', color: '#1b4332' }}><ShieldIcon size={20} /></span>
             <span>Easy Foods</span>
             <span className="admin-portal-badge">Admin Portal</span>
           </div>

@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import CartBar from './components/CartBar'
+import { ShieldIcon } from './components/Icons'
 import { useTrackVisit } from './hooks/useTrackVisit'
 import Home from './pages/Home'
 import Products from './pages/Products'
@@ -24,7 +25,7 @@ function AdminRedirect() {
 
   return (
     <div style={{ maxWidth: 500, margin: '5rem auto', textAlign: 'center', padding: '2.5rem 1.5rem', background: '#fff', borderRadius: '12px', border: '1px solid var(--line)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🛡️</div>
+      <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center', color: '#294a2c' }}><ShieldIcon size={44} /></div>
       <h2 style={{ color: 'var(--leaf-deep)', margin: '0 0 0.5rem' }}>Opening Dedicated Admin Portal…</h2>
       <p style={{ color: 'var(--ink-soft)', margin: '0 0 1.5rem', fontSize: '0.95rem' }}>
         Admin is in its own separate folder running independently on <strong>port 5174</strong>.

@@ -158,7 +158,7 @@ export default function HelpSupport() {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✉️ï¸</div>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✉</div>
           <h3 style={{ fontSize: '1.15rem', margin: '0 0 0.25rem 0', color: '#294a2c' }}>Email Care</h3>
           <p style={{ color: '#686b78', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
             For corporate, bulk &amp; general queries

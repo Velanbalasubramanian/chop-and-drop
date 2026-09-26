@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { BasketIcon, LeafIcon } from './Icons'
+import { BasketIcon, LeafIcon, ShieldIcon } from './Icons'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
@@ -248,7 +248,7 @@ export default function Navbar() {
                     role="menuitem"
                     title="Open Dedicated Admin Portal"
                   >
-                    <span className="dropdown-item-icon">🛡️</span>
+                    <span className="dropdown-item-icon"><ShieldIcon size={18} /></span>
                     <div className="dropdown-item-content">
                       <span className="dropdown-item-title">
                         Admin Portal <span className="admin-status-dot" style={{ display: 'inline-block', marginLeft: 4 }} />
@@ -431,7 +431,7 @@ export default function Navbar() {
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
                     <span className="admin-status-dot" />
-                    <span>🛡️ Dedicated Admin Portal</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><ShieldIcon size={16} /> Dedicated Admin Portal</span>
                   </span>
                   <span style={{ fontSize: '0.75rem', color: '#1b4d3e', fontWeight: 700 }}>Open ↗</span>
                 </a>

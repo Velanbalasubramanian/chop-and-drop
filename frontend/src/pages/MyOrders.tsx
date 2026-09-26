@@ -904,7 +904,7 @@ export default function MyOrders() {
                   className="btn btn-ghost"
                   style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem' }}
                 >
-                  🖨️ï¸ Print Receipt
+                  🖨️ Print Receipt
                 </button>
                 <button
                   type="button"
