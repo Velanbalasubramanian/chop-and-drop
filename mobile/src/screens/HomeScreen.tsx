@@ -15,10 +15,26 @@ import CartBar from '../components/CartBar'
 import { THEME } from '../config'
 import { useCart } from '../context/CartContext'
 
+const HOME_CATEGORIES = [
+  { id: 'cut_veggies', title: 'Cut Veggies', target: 'Cut Veggies', icon: 'nutrition-outline', color: '#16a34a', bg: '#f0fdf4' },
+  { id: 'grocery', title: 'Groceries', target: 'Groceries', icon: 'cart-outline', color: '#ea580c', bg: '#fff7ed' },
+  { id: 'cakes', title: 'Cakes & Bakes', target: 'Cakes & Bakery', icon: 'gift-outline', color: '#db2777', bg: '#fdf2f8' },
+  { id: 'water', title: '20L Water', target: '20L Water Cans', icon: 'water-outline', color: '#0284c7', bg: '#f0f9ff' },
+  { id: 'flowers', title: 'Pooja Flowers', target: 'Pooja Flowers', icon: 'flower-outline', color: '#d97706', bg: '#fffbeb' },
+  { id: 'electricals', title: 'Electricals', target: 'Electricals', icon: 'flash-outline', color: '#7c3aed', bg: '#f5f3ff' },
+]
+
 export default function HomeScreen() {
   const navigation = useNavigation<any>()
   const { products, refreshProducts } = useCart()
   const [refreshing, setRefreshing] = React.useState(false)
+
+  const handleCategoryPress = (targetCategory: string) => {
+    navigation.navigate('ProductsTab', {
+      category: targetCategory,
+      timestamp: Date.now(),
+    })
+  }
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true)
@@ -92,18 +108,11 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.categoryGrid}>
-          {[
-            { id: 'cut_veggies', title: 'Cut Veggies', icon: 'nutrition-outline', color: '#16a34a', bg: '#f0fdf4' },
-            { id: 'grocery', title: 'Groceries', icon: 'cart-outline', color: '#ea580c', bg: '#fff7ed' },
-            { id: 'cakes', title: 'Cakes & Bakes', icon: 'gift-outline', color: '#db2777', bg: '#fdf2f8' },
-            { id: 'water', title: '20L Water', icon: 'water-outline', color: '#0284c7', bg: '#f0f9ff' },
-            { id: 'flowers', title: 'Pooja Flowers', icon: 'flower-outline', color: '#d97706', bg: '#fffbeb' },
-            { id: 'electricals', title: 'Electricals', icon: 'flash-outline', color: '#7c3aed', bg: '#f5f3ff' },
-          ].map((cat) => (
+          {HOME_CATEGORIES.map((cat) => (
             <TouchableOpacity
               key={cat.id}
               style={[styles.categoryTile, { backgroundColor: cat.bg }]}
-              onPress={() => navigation.navigate('ProductsTab')}
+              onPress={() => handleCategoryPress(cat.target)}
               activeOpacity={0.8}
             >
               <View style={[styles.catIconWrap, { backgroundColor: '#ffffff' }]}>

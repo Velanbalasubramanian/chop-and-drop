@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlatList,
   RefreshControl,
@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useRoute } from '@react-navigation/native'
 import Header from '../components/Header'
 import ProductCard from '../components/ProductCard'
 import CartBar from '../components/CartBar'
@@ -26,17 +27,75 @@ const CATEGORIES = [
   'Electricals',
 ]
 
+const CATEGORY_MAP: Record<string, string> = {
+  all: 'All',
+  All: 'All',
+  cut_veggies: 'Cut Veggies',
+  'Cut Veggies': 'Cut Veggies',
+  grocery: 'Groceries',
+  groceries: 'Groceries',
+  'Groceries': 'Groceries',
+  cakes: 'Cakes & Bakery',
+  'Cakes & Bakes': 'Cakes & Bakery',
+  'Cakes & Bakery': 'Cakes & Bakery',
+  water: '20L Water Cans',
+  '20L Water': '20L Water Cans',
+  '20L Water Cans': '20L Water Cans',
+  flowers: 'Pooja Flowers',
+  'Pooja Flowers': 'Pooja Flowers',
+  electricals: 'Electricals',
+  'Electricals': 'Electricals',
+}
+
 export default function ProductsScreen() {
+  const route = useRoute<any>()
   const { products, refreshProducts } = useCart()
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [refreshing, setRefreshing] = useState(false)
+
+  const productsListRef = useRef<FlatList>(null)
+  const categoryListRef = useRef<FlatList>(null)
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true)
     await refreshProducts()
     setRefreshing(false)
   }, [refreshProducts])
+
+  const handleSelectCategory = (catName: string, animated = true) => {
+    setSelectedCategory(catName)
+    // Scroll products list immediately to top (offset 0)
+    productsListRef.current?.scrollToOffset({ offset: 0, animated })
+
+    // Scroll horizontal category bar to the active pill
+    const catIndex = CATEGORIES.indexOf(catName)
+    if (catIndex >= 0) {
+      setTimeout(() => {
+        try {
+          categoryListRef.current?.scrollToIndex({
+            index: catIndex,
+            animated: true,
+            viewPosition: 0.5,
+          })
+        } catch {
+          // Safe fallback if items layout pending
+        }
+      }, 50)
+    }
+  }
+
+  // Auto-select category and scroll to top when navigated with params
+  useEffect(() => {
+    const rawTarget = route.params?.category
+    if (rawTarget) {
+      const resolved = CATEGORY_MAP[rawTarget] || rawTarget
+      if (CATEGORIES.includes(resolved)) {
+        setSearch('')
+        handleSelectCategory(resolved, true)
+      }
+    }
+  }, [route.params?.category, route.params?.timestamp])
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -89,17 +148,19 @@ export default function ProductsScreen() {
       {/* Categories Horizontal Scroll */}
       <View style={styles.categoryBar}>
         <FlatList
+          ref={categoryListRef}
           data={CATEGORIES}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
           keyExtractor={(item) => item}
+          onScrollToIndexFailed={() => {}}
           renderItem={({ item }) => {
             const isSelected = item === selectedCategory
             return (
               <TouchableOpacity
                 style={[styles.catPill, isSelected && styles.catPillActive]}
-                onPress={() => setSelectedCategory(item)}
+                onPress={() => handleSelectCategory(item, true)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.catText, isSelected && styles.catTextActive]}>
@@ -113,6 +174,7 @@ export default function ProductsScreen() {
 
       {/* Products List */}
       <FlatList
+        ref={productsListRef}
         data={filteredProducts}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}

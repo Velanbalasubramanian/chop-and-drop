@@ -1,9 +1,11 @@
 ﻿import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
-import type { CartItem } from '../types'
-import { products } from '../data/products'
+import type { CartItem, Product } from '../types'
+import { products as fallbackProducts } from '../data/products'
+import { fetchProducts } from '../api'
 
 interface CartContextValue {
   items: CartItem[]
+  products: Product[]
   addItem: (productId: string, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
@@ -11,12 +13,14 @@ interface CartContextValue {
   totalCount: number
   totalPrice: number
   formatForOrder: () => string
+  refreshProducts: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
 const STORAGE_KEY = 'zippo_cart'
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const [products, setProducts] = useState<Product[]>(fallbackProducts)
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -25,6 +29,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return []
     }
   })
+
+  async function loadProducts() {
+    try {
+      const live = await fetchProducts()
+      if (Array.isArray(live) && live.length > 0) {
+        setProducts(live)
+      }
+    } catch {}
+  }
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
@@ -66,7 +83,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, 0)
 
   // Turns the cart into the plain-text "items" line the order form/backend expects
-  // — e.g. "2x Sambar Vegetable Mix, 1x Salad Mix"
+  // — e.g. "2x Sambar Vegetable Mix, 1x Bisleri 20L"
   function formatForOrder() {
     return items
       .map((i) => {
@@ -79,7 +96,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalCount, totalPrice, formatForOrder }}
+      value={{
+        items,
+        products,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        totalCount,
+        totalPrice,
+        formatForOrder,
+        refreshProducts: loadProducts,
+      }}
     >
       {children}
     </CartContext.Provider>
@@ -91,4 +119,3 @@ export function useCart() {
   if (!ctx) throw new Error('useCart must be used inside a CartProvider')
   return ctx
 }
-

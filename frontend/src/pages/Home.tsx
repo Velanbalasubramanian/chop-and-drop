@@ -21,6 +21,15 @@ const steps = [
   },
 ]
 
+const HOME_CATEGORIES = [
+  { id: 'cut_veggies', title: 'Cut Veggies', emoji: '🍏', bg: '#f0fdf4', color: '#16a34a' },
+  { id: 'grocery', title: 'Groceries', emoji: '🛒', bg: '#fff7ed', color: '#ea580c' },
+  { id: 'cakes', title: 'Cakes & Bakes', emoji: '🎂', bg: '#fdf2f8', color: '#db2777' },
+  { id: 'water', title: '20L Water', emoji: '💧', bg: '#f0f9ff', color: '#0284c7' },
+  { id: 'flowers', title: 'Pooja Flowers', emoji: '🌼', bg: '#fffbeb', color: '#d97706' },
+  { id: 'electricals', title: 'Electricals', emoji: '⚡', bg: '#f5f3ff', color: '#7c3aed' },
+]
+
 export default function Home() {
   return (
     <>
@@ -57,6 +66,86 @@ export default function Home() {
           </div>
           <div className="hero-floating-badge hero-badge-bottom">⚡ Ready to Cook · 0 Prep</div>
           <div className="hero-blob" />
+        </div>
+      </section>
+
+      {/* Shop By Category Grid */}
+      <section className="section categories-section" style={{ paddingTop: '1rem', paddingBottom: '2.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.4rem', color: '#0f172a' }}>
+            Shop By Category
+          </h2>
+          <p style={{ color: '#64748b', fontSize: '1.05rem' }}>
+            Tap any category to explore products &amp; order in seconds
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1.25rem',
+            maxWidth: '1000px',
+            margin: '0 auto',
+            padding: '0 1rem',
+          }}
+        >
+          {HOME_CATEGORIES.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/products?category=${cat.id}`}
+              style={{
+                backgroundColor: cat.bg,
+                borderRadius: '20px',
+                padding: '1.75rem 1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.03)',
+                border: '1px solid rgba(0,0,0,0.04)',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.08)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.03)'
+              }}
+            >
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2rem',
+                  marginBottom: '0.85rem',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
+                }}
+              >
+                {cat.emoji}
+              </div>
+              <span
+                style={{
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  color: '#1e293b',
+                  textAlign: 'center',
+                  lineHeight: 1.25,
+                }}
+              >
+                {cat.title}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

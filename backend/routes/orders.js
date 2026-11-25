@@ -13,8 +13,8 @@ const router = express.Router()
 const STATUSES = ['received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered']
 
 function makeOrderId() {
-  // Short, readable, hard to guess — e.g. "CD-8K3F2A"
-  return 'CD-' + crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6)
+  // Short, readable, hard to guess — e.g. "ZP-8K3F2A"
+  return 'ZP-' + crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6)
 }
 
 // POST /api/orders — customer places an order (LOGIN REQUIRED)
@@ -98,7 +98,7 @@ router.get('/mine', requireAuth, async (req, res) => {
 router.get('/transactions', requireAuth, async (req, res) => {
   const orders = await getOrdersByUserId(req.user.id)
   const transactions = orders.map((o) => ({
-    id: o.transactionId || `TXN-COD-${o.id.replace('CD-', '')}`,
+    id: o.transactionId || `TXN-COD-${o.id.replace('ZP-', '').replace('CD-', '')}`,
     orderId: o.id,
     amount: o.amount || 0,
     paymentMethod: o.paymentMethod || 'cod',

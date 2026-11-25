@@ -67,6 +67,16 @@ sqlite.exec(`
     visited_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS products (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    tamil_name TEXT DEFAULT '',
+    category TEXT DEFAULT 'general',
+    unit TEXT NOT NULL,
+    price REAL NOT NULL,
+    description TEXT DEFAULT ''
+  );
+
   CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(phone);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
   CREATE INDEX IF NOT EXISTS idx_visits_visited_at ON visits(visited_at);
@@ -131,6 +141,43 @@ const sqliteQueries = {
   countVisitsTotal: sqlite.prepare('SELECT COUNT(*) as count FROM visits'),
   countVisitsSince: sqlite.prepare('SELECT COUNT(*) as count FROM visits WHERE visited_at >= ?'),
   recentVisits: sqlite.prepare('SELECT path, visited_at FROM visits ORDER BY id DESC LIMIT ?'),
+
+  allProducts: sqlite.prepare('SELECT * FROM products ORDER BY rowid ASC'),
+  productById: sqlite.prepare('SELECT * FROM products WHERE id = ?'),
+  upsertProduct: sqlite.prepare(`
+    INSERT INTO products (id, name, tamil_name, category, unit, price, description)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name=excluded.name,
+      tamil_name=excluded.tamil_name,
+      category=excluded.category,
+      unit=excluded.unit,
+      price=excluded.price,
+      description=excluded.description
+  `),
+  countProducts: sqlite.prepare('SELECT COUNT(*) as count FROM products'),
+}
+
+// Auto-seed products into SQLite if empty
+try {
+  const pCount = sqliteQueries.countProducts.get().count
+  if (pCount === 0) {
+    const defaultProducts = require('../data/products')
+    for (const p of defaultProducts) {
+      sqliteQueries.upsertProduct.run(
+        p.id,
+        p.name,
+        p.tamilName || '',
+        p.category || 'general',
+        p.unit,
+        p.price,
+        p.description || ''
+      )
+    }
+    console.log(`[Database] Seeded ${defaultProducts.length} products into SQLite products table.`)
+  }
+} catch (e) {
+  console.log('[Database] Products seed note:', e.message)
 }
 
 function formatSqliteUser(row) {
@@ -186,6 +233,52 @@ function formatSqliteTicket(row) {
     status: row.status,
     createdAt: row.created_at,
   }
+}
+
+function formatSqliteProduct(row) {
+  if (!row) return null
+  return {
+    id: row.id,
+    name: row.name,
+    tamilName: row.tamil_name || '',
+    category: row.category || 'general',
+    unit: row.unit,
+    price: Number(row.price || 0),
+    description: row.description || '',
+  }
+}
+
+async function getAllProducts() {
+  try {
+    const rows = sqliteQueries.allProducts.all()
+    return rows.map(formatSqliteProduct)
+  } catch (err) {
+    const defaultProducts = require('../data/products')
+    return defaultProducts
+  }
+}
+
+async function getProductById(id) {
+  try {
+    const row = sqliteQueries.productById.get(id)
+    return formatSqliteProduct(row)
+  } catch (err) {
+    const defaultProducts = require('../data/products')
+    return defaultProducts.find((p) => p.id === id) || null
+  }
+}
+
+async function upsertProduct(product) {
+  sqliteQueries.upsertProduct.run(
+    product.id,
+    product.name,
+    product.tamilName || '',
+    product.category || 'general',
+    product.unit,
+    product.price,
+    product.description || ''
+  )
+  return getProductById(product.id)
 }
 
 // ==========================================
@@ -410,7 +503,7 @@ async function updateOrderPaymentStatus(id, paymentStatus) {
   return getOrderById(normalizedId)
 }
 
-async function requestOrderRefund(id, { reason, amount, upi }) {
+async function requestOrderRefund(id, { reason, amount, upi } = {}) {
   const normId = String(id).trim().toUpperCase()
   const refundRequestedAt = new Date().toISOString()
   const cleanReason = String(reason || '').trim()
@@ -438,10 +531,10 @@ async function requestOrderRefund(id, { reason, amount, upi }) {
   return getOrderById(normId)
 }
 
-async function approveOrderRefund(id, { refundId }) {
+async function approveOrderRefund(id, { refundId } = {}) {
   const normId = String(id).trim().toUpperCase()
   const refundProcessedAt = new Date().toISOString()
-  const cleanRefundId = String(refundId || '').trim()
+  const cleanRefundId = String(refundId || 'REF-' + Math.random().toString(36).substring(2, 8).toUpperCase()).trim()
 
   try {
     sqliteQueries.approveRefund.run(cleanRefundId, refundProcessedAt, normId)
@@ -613,4 +706,7 @@ module.exports = {
   updateSupportTicketStatus,
   recordVisit,
   getVisitsSummary,
+  getAllProducts,
+  getProductById,
+  upsertProduct,
 }

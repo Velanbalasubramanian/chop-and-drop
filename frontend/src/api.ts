@@ -5,6 +5,7 @@ import type {
   OrderResponse,
   OrderStatus,
   OtpRequestResult,
+  Product,
   TrackedOrder,
   User,
   VisitsSummary,
@@ -249,5 +250,17 @@ export async function fetchAdminUsers(token: string): Promise<{ users: User[] }>
   })
   if (!res.ok) throw new Error('Could not load registered users.')
   return res.json()
+}
+
+export async function fetchProducts(): Promise<Product[]> {
+  try {
+    const res = await fetch('/api/products')
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data) && data.length > 0) return data
+    }
+  } catch {}
+  const { products } = await import('./data/products')
+  return products
 }
 
