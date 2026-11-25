@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Easy Foods",
+    "slug": "easy-foods",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "primaryColor": "#d85d2a",
+    "splash": {
+      "backgroundColor": "#d85d2a",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.easyfoods.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#d85d2a",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "package": "com.easyfoods.chopanddrop",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

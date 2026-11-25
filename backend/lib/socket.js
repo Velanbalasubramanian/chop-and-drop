@@ -3,10 +3,10 @@ const { verifyToken } = require('./auth')
 
 let io = null
 
-function initSocket(server, corsOrigin) {
+function initSocket(server) {
   io = new Server(server, {
     cors: {
-      origin: corsOrigin || '*',
+      origin: '*',
       methods: ['GET', 'POST', 'PATCH'],
       credentials: true,
     },

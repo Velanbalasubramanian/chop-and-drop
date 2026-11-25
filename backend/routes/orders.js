@@ -17,8 +17,8 @@ function makeOrderId() {
   return 'CD-' + crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6)
 }
 
-// POST /api/orders — customer places an order
-router.post('/', orderLimiter, attachUserIfPresent, async (req, res) => {
+// POST /api/orders — customer places an order (LOGIN REQUIRED)
+router.post('/', orderLimiter, requireAuth, async (req, res) => {
   const {
     name,
     phone,
@@ -48,7 +48,7 @@ router.post('/', orderLimiter, attachUserIfPresent, async (req, res) => {
 
   const order = {
     id: makeOrderId(),
-    userId: req.user ? req.user.id : null,
+    userId: req.user.id,
     name: cleanName,
     phone: cleanPhone,
     email: String(email || '').trim().toLowerCase(),

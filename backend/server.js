@@ -92,8 +92,8 @@ if (fs.existsSync(frontendDist)) {
   })
 }
 
-// Initialize Socket.IO
-initSocket(server, allowedOrigins)
+// Initialize Socket.IO with open CORS for mobile & web
+initSocket(server)
 
 server.listen(PORT, () => {
   console.log(`[Server] Easy Foods backend running on http://localhost:${PORT}`)
