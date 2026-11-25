@@ -11,7 +11,14 @@ export const DEFAULT_HOST = Platform.select({
 export const APP_NAME = 'Zippo'
 export const APP_TAGLINE = 'Your Everyday Delivery Hub'
 export const BACKEND_PORT = 4000
-export const API_BASE_URL = `http://${DEFAULT_HOST}:${BACKEND_PORT}`
+
+// Production backend cloud URL (Change this to your deployed Render/Railway domain)
+export const PROD_API_URL = 'https://zippo-api.onrender.com'
+
+// Automatically selects LAN IP in local Expo development, or cloud URL in production APK / app builds.
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (__DEV__ ? `http://${DEFAULT_HOST}:${BACKEND_PORT}` : PROD_API_URL)
 
 export const THEME = {
   colors: {

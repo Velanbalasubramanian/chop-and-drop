@@ -12,11 +12,16 @@ import type {
 } from './types'
 
 // All requests go through /api, which Vite proxies to the Express backend
-// in development (see vite.config.ts) and which should be routed to the
-// same backend by your reverse proxy / hosting setup in production.
+// in development (see vite.config.ts). In production, set VITE_API_URL in
+// Vercel / Netlify environment variables (e.g. https://your-backend.onrender.com).
+export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+
+function apiUrl(path: string): string {
+  return `${API_BASE}${path}`
+}
 
 export async function submitOrder(payload: OrderPayload, token?: string | null): Promise<OrderResponse> {
-  const res = await fetch('/api/orders', {
+  const res = await fetch(apiUrl('/api/orders'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -34,7 +39,7 @@ export async function submitOrder(payload: OrderPayload, token?: string | null):
 }
 
 export async function register(name: string, phone: string, password: string, email?: string): Promise<AuthResult> {
-  const res = await fetch('/api/auth/register', {
+  const res = await fetch(apiUrl('/api/auth/register'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, phone, password, email }),
@@ -47,7 +52,7 @@ export async function register(name: string, phone: string, password: string, em
 }
 
 export async function login(phone: string, password: string): Promise<AuthResult> {
-  const res = await fetch('/api/auth/login', {
+  const res = await fetch(apiUrl('/api/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone, password }),
@@ -60,7 +65,7 @@ export async function login(phone: string, password: string): Promise<AuthResult
 }
 
 export async function fetchMe(token: string): Promise<User> {
-  const res = await fetch('/api/auth/me', {
+  const res = await fetch(apiUrl('/api/auth/me'), {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) throw new Error('Session expired.')
@@ -69,7 +74,7 @@ export async function fetchMe(token: string): Promise<User> {
 }
 
 export async function requestOtp(phone: string): Promise<OtpRequestResult> {
-  const res = await fetch('/api/auth/otp/request', {
+  const res = await fetch(apiUrl('/api/auth/otp/request'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone }),
@@ -82,7 +87,7 @@ export async function requestOtp(phone: string): Promise<OtpRequestResult> {
 }
 
 export async function verifyOtp(phone: string, code: string, name?: string): Promise<AuthResult> {
-  const res = await fetch('/api/auth/otp/verify', {
+  const res = await fetch(apiUrl('/api/auth/otp/verify'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone, code, name }),
@@ -97,7 +102,7 @@ export async function verifyOtp(phone: string, code: string, name?: string): Pro
 }
 
 export async function fetchMyOrders(token: string): Promise<AdminOrder[]> {
-  const res = await fetch('/api/orders/mine', {
+  const res = await fetch(apiUrl('/api/orders/mine'), {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) throw new Error('Could not load your orders.')
@@ -106,7 +111,7 @@ export async function fetchMyOrders(token: string): Promise<AdminOrder[]> {
 }
 
 export async function fetchMyTransactions(token: string): Promise<any[]> {
-  const res = await fetch('/api/orders/transactions', {
+  const res = await fetch(apiUrl('/api/orders/transactions'), {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) throw new Error('Could not load transaction history.')
@@ -116,7 +121,7 @@ export async function fetchMyTransactions(token: string): Promise<any[]> {
 
 export async function trackOrder(orderId: string, phone: string): Promise<TrackedOrder> {
   const params = new URLSearchParams({ orderId, phone })
-  const res = await fetch(`/api/orders/track?${params.toString()}`)
+  const res = await fetch(apiUrl(`/api/orders/track?${params.toString()}`))
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -134,7 +139,7 @@ export async function requestOrderRefund(
   upi?: string,
   token?: string | null
 ): Promise<{ ok: boolean; message: string; order: any }> {
-  const res = await fetch(`/api/orders/${orderId}/refund`, {
+  const res = await fetch(apiUrl(`/api/orders/${orderId}/refund`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -150,7 +155,7 @@ export async function requestOrderRefund(
 }
 
 export async function adminLogin(password: string): Promise<{ ok: boolean; token?: string; error?: string }> {
-  const res = await fetch('/api/admin/login', {
+  const res = await fetch(apiUrl('/api/admin/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
@@ -175,7 +180,7 @@ function getAdminAuthHeaders(tokenOrPassword: string): Record<string, string> {
 }
 
 export async function fetchAdminOrders(token: string): Promise<{ orders: AdminOrder[]; statuses: OrderStatus[] }> {
-  const res = await fetch('/api/admin/orders', {
+  const res = await fetch(apiUrl('/api/admin/orders'), {
     headers: getAdminAuthHeaders(token),
   })
   if (!res.ok) throw new Error('Could not load orders. Admin session expired or invalid.')
@@ -183,7 +188,7 @@ export async function fetchAdminOrders(token: string): Promise<{ orders: AdminOr
 }
 
 export async function updateOrderStatus(token: string, orderId: string, status: OrderStatus) {
-  const res = await fetch(`/api/admin/orders/${orderId}`, {
+  const res = await fetch(apiUrl(`/api/admin/orders/${orderId}`), {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -196,7 +201,7 @@ export async function updateOrderStatus(token: string, orderId: string, status: 
 }
 
 export async function fetchVisitsSummary(token: string): Promise<VisitsSummary> {
-  const res = await fetch('/api/visits/summary', {
+  const res = await fetch(apiUrl('/api/visits/summary'), {
     headers: getAdminAuthHeaders(token),
   })
   if (!res.ok) throw new Error('Could not load site visits.')
@@ -211,7 +216,7 @@ export async function submitSupportTicket(ticket: {
   issueType: string
   message: string
 }): Promise<{ ok: boolean; ticketId: string; message: string }> {
-  const res = await fetch('/api/support', {
+  const res = await fetch(apiUrl('/api/support'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(ticket),
@@ -224,7 +229,7 @@ export async function submitSupportTicket(ticket: {
 }
 
 export async function fetchSupportTickets(token: string): Promise<{ tickets: any[] }> {
-  const res = await fetch('/api/admin/tickets', {
+  const res = await fetch(apiUrl('/api/admin/tickets'), {
     headers: getAdminAuthHeaders(token),
   })
   if (!res.ok) throw new Error('Could not load support tickets.')
@@ -232,7 +237,7 @@ export async function fetchSupportTickets(token: string): Promise<{ tickets: any
 }
 
 export async function updateTicketStatus(token: string, ticketId: string, status: string): Promise<any> {
-  const res = await fetch(`/api/admin/tickets/${ticketId}`, {
+  const res = await fetch(apiUrl(`/api/admin/tickets/${ticketId}`), {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -245,7 +250,7 @@ export async function updateTicketStatus(token: string, ticketId: string, status
 }
 
 export async function fetchAdminUsers(token: string): Promise<{ users: User[] }> {
-  const res = await fetch('/api/admin/users', {
+  const res = await fetch(apiUrl('/api/admin/users'), {
     headers: getAdminAuthHeaders(token),
   })
   if (!res.ok) throw new Error('Could not load registered users.')
@@ -254,7 +259,7 @@ export async function fetchAdminUsers(token: string): Promise<{ users: User[] }>
 
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    const res = await fetch('/api/products')
+    const res = await fetch(apiUrl('/api/products'))
     if (res.ok) {
       const data = await res.json()
       if (Array.isArray(data) && data.length > 0) return data
