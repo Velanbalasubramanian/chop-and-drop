@@ -47,20 +47,20 @@ export default function HomeScreen() {
         <View style={styles.heroBox}>
           <View style={styles.heroBadgeRow}>
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>🌱 100% Farm Fresh</Text>
+              <Text style={styles.heroBadgeText}>⚡ 10-Min Fast Delivery</Text>
             </View>
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>⚡ 0 Prep Time</Text>
+              <Text style={styles.heroBadgeText}>🛒 All-In-One Super App</Text>
             </View>
           </View>
 
           <Text style={styles.heroTitle}>
-            Skip the chopping board.{'\n'}
-            <Text style={{ color: THEME.colors.primary }}>Start cooking right away.</Text>
+            Groceries, Veggies, Cakes & More.{'\n'}
+            <Text style={{ color: THEME.colors.primary }}>Delivered in minutes with Zippo.</Text>
           </Text>
 
           <Text style={styles.heroSub}>
-            Washed, hygienic, and finely chopped vegetables delivered every morning to your doorstep across Chennai.
+            Fresh cut vegetables, pantry groceries, celebration cakes, 20L water cans, pooja flowers, and electrical essentials delivered fast to your doorstep.
           </Text>
 
           <View style={styles.heroActions}>
@@ -69,7 +69,7 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate('ProductsTab')}
               activeOpacity={0.85}
             >
-              <Text style={styles.heroPrimaryBtnText}>Order Today's Cut</Text>
+              <Text style={styles.heroPrimaryBtnText}>Explore All Products</Text>
               <Ionicons name="arrow-forward" size={16} color="#ffffff" />
             </TouchableOpacity>
 
@@ -83,30 +83,61 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Shop By Category Grid */}
+        <View style={styles.sectionHeaderRow}>
+          <View>
+            <Text style={styles.sectionTitle}>Shop By Category</Text>
+            <Text style={styles.sectionSub}>Everything delivered right to your door</Text>
+          </View>
+        </View>
+
+        <View style={styles.categoryGrid}>
+          {[
+            { id: 'cut_veggies', title: 'Cut Veggies', icon: 'nutrition-outline', color: '#16a34a', bg: '#f0fdf4' },
+            { id: 'grocery', title: 'Groceries', icon: 'cart-outline', color: '#ea580c', bg: '#fff7ed' },
+            { id: 'cakes', title: 'Cakes & Bakes', icon: 'gift-outline', color: '#db2777', bg: '#fdf2f8' },
+            { id: 'water', title: '20L Water', icon: 'water-outline', color: '#0284c7', bg: '#f0f9ff' },
+            { id: 'flowers', title: 'Pooja Flowers', icon: 'flower-outline', color: '#d97706', bg: '#fffbeb' },
+            { id: 'electricals', title: 'Electricals', icon: 'flash-outline', color: '#7c3aed', bg: '#f5f3ff' },
+          ].map((cat) => (
+            <TouchableOpacity
+              key={cat.id}
+              style={[styles.categoryTile, { backgroundColor: cat.bg }]}
+              onPress={() => navigation.navigate('ProductsTab')}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.catIconWrap, { backgroundColor: '#ffffff' }]}>
+                <Ionicons name={cat.icon as any} size={22} color={cat.color} />
+              </View>
+              <Text style={styles.catTileTitle}>{cat.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* Feature Steps */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>How It Reaches Your Kitchen</Text>
-          <Text style={styles.sectionSub}>Morning freshness guarantee</Text>
+          <Text style={styles.sectionTitle}>How Zippo Works</Text>
+          <Text style={styles.sectionSub}>Speed & quality guaranteed</Text>
         </View>
 
         <View style={styles.stepsContainer}>
           <View style={styles.stepItem}>
             <View style={styles.stepIconBox}>
-              <Ionicons name="restaurant-outline" size={20} color={THEME.colors.primary} />
+              <Ionicons name="basket-outline" size={20} color={THEME.colors.primary} />
             </View>
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>1. You pick your packs</Text>
-              <Text style={styles.stepDesc}>Sambar mix, poriyal mix, cleaned greens, or daily salads.</Text>
+              <Text style={styles.stepTitle}>1. Choose From 100+ Products</Text>
+              <Text style={styles.stepDesc}>Groceries, fresh cuts, bakery cakes, water cans & home hardware.</Text>
             </View>
           </View>
 
           <View style={styles.stepItem}>
             <View style={styles.stepIconBox}>
-              <Ionicons name="water-outline" size={20} color={THEME.colors.primary} />
+              <Ionicons name="checkmark-done-circle-outline" size={20} color={THEME.colors.primary} />
             </View>
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>2. Washed & cut at 4 AM</Text>
-              <Text style={styles.stepDesc}>Triple-washed and freshly diced the same morning.</Text>
+              <Text style={styles.stepTitle}>2. Packed With Care & Hygiene</Text>
+              <Text style={styles.stepDesc}>Triple-checked, sanitized and packaged right at your local hub.</Text>
             </View>
           </View>
 
@@ -115,8 +146,8 @@ export default function HomeScreen() {
               <Ionicons name="bicycle-outline" size={20} color={THEME.colors.primary} />
             </View>
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>3. Doorstep by 7 AM</Text>
-              <Text style={styles.stepDesc}>Delivered right on time before your morning cooking begins.</Text>
+              <Text style={styles.stepTitle}>3. Fast Doorstep Delivery</Text>
+              <Text style={styles.stepDesc}>Delivered right on time with real-time live order tracking.</Text>
             </View>
           </View>
         </View>
@@ -260,6 +291,43 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 18,
     marginBottom: 10,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 10,
+    marginBottom: 12,
+  },
+  categoryTile: {
+    width: '30%',
+    flexGrow: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  catIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  catTileTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: THEME.colors.text,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 18,

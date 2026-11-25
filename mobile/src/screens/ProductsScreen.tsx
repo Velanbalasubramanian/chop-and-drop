@@ -16,12 +16,20 @@ import { THEME } from '../config'
 import { useCart } from '../context/CartContext'
 import type { Product } from '../types'
 
-const CATEGORIES = ['All Packs', 'Daily Gravy', 'Greens & Salads', 'Bulk Packs']
+const CATEGORIES = [
+  'All',
+  'Cut Veggies',
+  'Groceries',
+  'Cakes & Bakery',
+  '20L Water Cans',
+  'Pooja Flowers',
+  'Electricals',
+]
 
 export default function ProductsScreen() {
   const { products, refreshProducts } = useCart()
   const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All Packs')
+  const [selectedCategory, setSelectedCategory] = useState('All')
   const [refreshing, setRefreshing] = useState(false)
 
   const onRefresh = React.useCallback(async () => {
@@ -41,23 +49,22 @@ export default function ProductsScreen() {
 
       if (!matchesSearch) return false
 
-      if (selectedCategory === 'All Packs') return true
-      if (selectedCategory === 'Daily Gravy') {
-        return p.id.includes('onion') || p.id.includes('sambar') || p.id.includes('poriyal')
+      if (selectedCategory === 'All') return true
+      if (selectedCategory === 'Cut Veggies') {
+        return p.category === 'cut_veggies' || (!p.category && (p.id.includes('mix') || p.id.includes('bulk')))
       }
-      if (selectedCategory === 'Greens & Salads') {
-        return p.id.includes('salad') || p.id.includes('greens')
-      }
-      if (selectedCategory === 'Bulk Packs') {
-        return p.id.includes('bulk')
-      }
+      if (selectedCategory === 'Groceries') return p.category === 'grocery'
+      if (selectedCategory === 'Cakes & Bakery') return p.category === 'cakes'
+      if (selectedCategory === '20L Water Cans') return p.category === 'water'
+      if (selectedCategory === 'Pooja Flowers') return p.category === 'flowers'
+      if (selectedCategory === 'Electricals') return p.category === 'electricals'
       return true
     })
   }, [products, search, selectedCategory])
 
   return (
     <View style={styles.container}>
-      <Header title="Vegetable Packs" />
+      <Header title="Zippo Store" />
 
       {/* Search Input */}
       <View style={styles.searchRow}>
@@ -65,7 +72,7 @@ export default function ProductsScreen() {
           <Ionicons name="search" size={18} color={THEME.colors.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search sambar mix, keerai, onion..."
+            placeholder="Search veggies, groceries, cakes, water..."
             placeholderTextColor="#94a3b8"
             value={search}
             onChangeText={setSearch}

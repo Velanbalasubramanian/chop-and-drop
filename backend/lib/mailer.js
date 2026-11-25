@@ -31,14 +31,14 @@ async function sendOrderConfirmationEmail(order) {
     await transporter.sendMail({
       from: process.env.MAIL_FROM || process.env.SMTP_USER,
       to: order.email,
-      subject: `Easy Foods — order ${order.id} received`,
+      subject: `Zippo — order ${order.id} received`,
       text:
         `Hi ${order.name},\n\n` +
         `We've received your order (ID: ${order.id}).\n` +
         `Items: ${order.items}\n` +
         `Delivery slot: ${order.deliverySlot}\n\n` +
         `Track it anytime at: /track (use order ID + your phone number)\n\n` +
-        `— Easy Foods`,
+        `— Zippo`,
     })
     return { sent: true }
   } catch (err) {

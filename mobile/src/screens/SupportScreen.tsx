@@ -16,11 +16,11 @@ import { useAuth } from '../context/AuthContext'
 import { submitSupportTicket } from '../api'
 
 const ISSUE_TYPES = [
-  'Damaged / Spoiled vegetable pack',
+  'Damaged / Defective item',
   'Wrong or missing items',
   'Delivery delay',
   'Payment or refund query',
-  'Bulk kitchen or catering inquiry',
+  'Bulk order or business inquiry',
   'General feedback',
 ]
 
@@ -60,7 +60,7 @@ export default function SupportScreen() {
 
       Alert.alert(
         'Ticket Submitted! 📩',
-        `Ticket Ref: ${res.ticketId}\nOur Chennai kitchen support will contact you within 30 minutes.`,
+        `Ticket Ref: ${res.ticketId}\nOur Zippo customer support team will contact you within 30 minutes.`,
         [{ text: 'OK', onPress: () => setMessage('') }]
       )
     } catch (err: any) {
@@ -79,7 +79,7 @@ export default function SupportScreen() {
         <View style={styles.contactCard}>
           <Text style={styles.contactTitle}>Quick Help Line</Text>
           <Text style={styles.contactSub}>
-            Reach our morning kitchen dispatch manager directly for urgent order queries.
+            Reach our Zippo dispatch team directly for urgent order queries.
           </Text>
 
           <View style={styles.contactRow}>

@@ -10,7 +10,7 @@ if (!JWT_SECRET || JWT_SECRET === 'replace-with-a-long-random-string' || JWT_SEC
   if (process.env.NODE_ENV === 'production') {
     console.error('[SECURITY WARNING] Insecure or missing JWT_SECRET in production!')
   }
-  JWT_SECRET = JWT_SECRET || 'chop-and-drop-secure-random-jwt-key-' + crypto.randomBytes(16).toString('hex')
+  JWT_SECRET = JWT_SECRET || 'zippo-secure-random-jwt-key-' + crypto.randomBytes(16).toString('hex')
 }
 
 const CUSTOMER_TOKEN_EXPIRY = '7d'

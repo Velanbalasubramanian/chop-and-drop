@@ -1,8 +1,8 @@
 {
-  "name": "chop-and-drop",
+  "name": "zippo",
   "version": "1.0.0",
   "private": true,
-  "description": "Easy Foods — Fresh Vegetable Chopping & Delivery Platform",
+  "description": "Zippo — Everyday Quick Commerce Delivery Super App",
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix admin",
     "build": "npm run build --prefix frontend && npm run build --prefix admin",
@@ -23,7 +23,7 @@
     "socketio",
     "mongodb"
   ],
-  "author": "Easy Foods",
+  "author": "Zippo",
   "license": "ISC"
 }
 

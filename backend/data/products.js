@@ -1,13 +1,251 @@
-// Same catalogue as the frontend's src/data/products.ts.
-// In a real deployment, keep this in a database and have both
-// sides read from the same source of truth.
+// Zippo Multi-Category Super App Products Catalogue
+// Categories: cut_veggies, grocery, cakes, water, flowers, electricals
 const products = [
-  { id: 'onion-tomato-mix', name: 'Onion & Tomato Chop Mix', unit: '500 g pack', price: 45 },
-  { id: 'sambar-mix', name: 'Sambar Vegetable Mix', unit: '750 g pack', price: 79 },
-  { id: 'salad-mix', name: 'Everyday Salad Mix', unit: '400 g pack', price: 55 },
-  { id: 'greens-mix', name: 'Cleaned Greens Bundle', unit: '300 g pack', price: 39 },
-  { id: 'poriyal-mix', name: 'Poriyal Vegetable Mix', unit: '600 g pack', price: 65 },
-  { id: 'bulk-hotel-mix', name: 'Bulk Kitchen Pack', unit: '5 kg pack', price: 420 },
+  // 1. Fresh Cut Vegetables
+  {
+    id: 'onion-tomato-mix',
+    name: 'Onion & Tomato Chop Mix',
+    tamilName: 'வெங்காயம் தக்காளி',
+    category: 'cut_veggies',
+    unit: '500 g pack',
+    price: 45,
+    description: 'Diced onion and tomato, kitchen-ready in the exact ratio most gravies start with.'
+  },
+  {
+    id: 'sambar-mix',
+    name: 'Sambar Vegetable Mix',
+    tamilName: 'சாம்பார் காய்கறி',
+    category: 'cut_veggies',
+    unit: '750 g pack',
+    price: 79,
+    description: 'Drumstick, brinjal, pumpkin and okra, cut to sambar size — no cutting board needed.'
+  },
+  {
+    id: 'salad-mix',
+    name: 'Everyday Salad Mix',
+    tamilName: 'சாலட் கலவை',
+    category: 'cut_veggies',
+    unit: '400 g pack',
+    price: 55,
+    description: 'Cucumber, carrot and beetroot, julienned and ready to toss with lemon and salt.'
+  },
+  {
+    id: 'greens-mix',
+    name: 'Cleaned Greens Bundle',
+    tamilName: 'கீரை',
+    category: 'cut_veggies',
+    unit: '300 g pack',
+    price: 39,
+    description: 'Keerai washed three times and finely chopped, ready for direct cooking.'
+  },
+  {
+    id: 'poriyal-mix',
+    name: 'Poriyal Vegetable Mix',
+    tamilName: 'பொரியல் காய்கறி',
+    category: 'cut_veggies',
+    unit: '600 g pack',
+    price: 65,
+    description: 'Beans, carrot and cabbage, diced fine and even, straight into the kadai.'
+  },
+  {
+    id: 'bulk-hotel-mix',
+    name: 'Bulk Kitchen Pack',
+    tamilName: 'ஹோட்டல் தேவை',
+    category: 'cut_veggies',
+    unit: '5 kg pack',
+    price: 420,
+    description: 'For mess kitchens and small hotels — mixed vegetables cut to your standing order.'
+  },
+
+  // 2. Groceries & Essentials
+  {
+    id: 'aashirvaad-atta',
+    name: 'Aashirvaad Shudh Chakki Atta',
+    tamilName: 'கோதுமை மாவு',
+    category: 'grocery',
+    unit: '5 kg pack',
+    price: 230,
+    description: '100% whole wheat flour with dietary fiber, soft rotis every time.'
+  },
+  {
+    id: 'ponni-rice',
+    name: 'Premium Ponni Boiled Rice',
+    tamilName: 'பொன்னி அரிசி',
+    category: 'grocery',
+    unit: '5 kg bag',
+    price: 340,
+    description: 'Aged premium Ponni rice, fluffy and aromatic for everyday South Indian lunch.'
+  },
+  {
+    id: 'arokya-milk',
+    name: 'Fresh Toned Milk',
+    tamilName: 'பசும்பால்',
+    category: 'grocery',
+    unit: '500 ml packet',
+    price: 27,
+    description: 'Farm fresh pasteurized toned milk, chilled and delivered fresh daily.'
+  },
+  {
+    id: 'farm-eggs-6',
+    name: 'Farm Fresh White Eggs (6 pcs)',
+    tamilName: 'முட்டை 6',
+    category: 'grocery',
+    unit: '6 pcs pack',
+    price: 42,
+    description: 'Grade A hygienic farm eggs, high protein everyday breakfast essential.'
+  },
+  {
+    id: 'gold-winner-oil',
+    name: 'Refined Sunflower Oil',
+    tamilName: 'சூரியகாந்தி எண்ணெய்',
+    category: 'grocery',
+    unit: '1 L pouch',
+    price: 135,
+    description: 'Fortified with Vitamin A & D for light and healthy everyday cooking.'
+  },
+  {
+    id: 'toor-dal-1kg',
+    name: 'Premium Toor Dal',
+    tamilName: 'துவரம் பருப்பு',
+    category: 'grocery',
+    unit: '1 kg pack',
+    price: 165,
+    description: 'Protein rich, unpolished toor dal for rich, aromatic sambar and rasam.'
+  },
+
+  // 3. Fresh Cakes & Bakery
+  {
+    id: 'choco-truffle-cake',
+    name: 'Dutch Chocolate Truffle Cake',
+    tamilName: 'சாக்லேட் ட்ரஃபிள் கேக்',
+    category: 'cakes',
+    unit: '500 g cake',
+    price: 450,
+    description: 'Rich Belgian dark chocolate ganache layered on moist chocolate sponge.'
+  },
+  {
+    id: 'black-forest-cake',
+    name: 'Classic Black Forest Cake',
+    tamilName: 'பிளாக் ஃபாரஸ்ட் கேக்',
+    category: 'cakes',
+    unit: '500 g cake',
+    price: 399,
+    description: 'Layers of chocolate sponge, whipped vanilla cream, and red cherry glaze.'
+  },
+  {
+    id: 'butter-croissant-2',
+    name: 'French Butter Croissant (2 pcs)',
+    tamilName: 'வெண்ணெய் குரோசண்ட்',
+    category: 'cakes',
+    unit: '2 pcs pack',
+    price: 120,
+    description: 'Flaky, buttery baked croissants fresh from the bakery oven.'
+  },
+  {
+    id: 'wheat-bread-loaf',
+    name: '100% Whole Wheat Slice Bread',
+    tamilName: 'கோதுமை ரொட்டி',
+    category: 'cakes',
+    unit: '400 g loaf',
+    price: 48,
+    description: 'Zero maida, soft sliced wholesome brown bread for healthy breakfasts.'
+  },
+
+  // 4. 20L Water Cans
+  {
+    id: 'bisleri-20l-can',
+    name: 'Bisleri 20L Purified Water Can',
+    tamilName: 'பிஸ்லரி 20லி தண்ணீர்',
+    category: 'water',
+    unit: '20 L can',
+    price: 90,
+    description: 'Ozonated mineral water with vital minerals, sealed and delivered to doorstep.'
+  },
+  {
+    id: 'aquafina-20l-can',
+    name: 'Aquafina 20L Drinking Water Jar',
+    tamilName: 'அக்வாஃபினா 20லி கேன்',
+    category: 'water',
+    unit: '20 L can',
+    price: 85,
+    description: 'Multi-stage RO purified drinking water for home and office dispenser.'
+  },
+  {
+    id: 'dispenser-tap-pump',
+    name: 'Automatic Water Can Dispenser Pump',
+    tamilName: 'தண்ணீர் பம்ப்',
+    category: 'water',
+    unit: '1 unit',
+    price: 299,
+    description: 'Rechargeable USB electric pump that snaps directly onto standard 20L cans.'
+  },
+
+  // 5. Pooja Flowers & Fragrance
+  {
+    id: 'madurai-mallipoo',
+    name: 'Madurai Jasmine / Mallipoo String',
+    tamilName: 'மதுரை மல்லிப்பூ',
+    category: 'flowers',
+    unit: '1 muzham string',
+    price: 60,
+    description: 'Fresh hand-tied aromatic Madurai jasmine flowers for morning pooja.'
+  },
+  {
+    id: 'pooja-mix-flowers',
+    name: 'Morning Pooja Flower Basket Mix',
+    tamilName: 'பூஜை மலர்கள்',
+    category: 'flowers',
+    unit: '200 g basket',
+    price: 45,
+    description: 'Fresh Sevvanthi, Arali, Rose petals, and Vilvam leaves for morning prayer.'
+  },
+  {
+    id: 'rose-garland',
+    name: 'Fresh Red Rose & Fragrant Garland',
+    tamilName: 'ரோஜா மாலை',
+    category: 'flowers',
+    unit: '1 garland',
+    price: 150,
+    description: 'Handcrafted fresh rose garland for deity or special family occasions.'
+  },
+
+  // 6. Electricals & Quick Hardware
+  {
+    id: 'philips-9w-led',
+    name: 'Philips 9W Cool Day Light LED Bulb',
+    tamilName: '9W எல்இடி பல்ப்',
+    category: 'electricals',
+    unit: '1 pc box (B22)',
+    price: 110,
+    description: 'Energy saving bright 825 lumens bulb with 1-year replacement warranty.'
+  },
+  {
+    id: 'anchor-power-strip',
+    name: 'Anchor 4-Socket Power Strip Spike Buster',
+    tamilName: 'பவர் ஸ்ட்ரிப்',
+    category: 'electricals',
+    unit: '1 unit (2m)',
+    price: 349,
+    description: 'Heavy duty 4 universal sockets with master switch and overload protection.'
+  },
+  {
+    id: 'duracell-aa-4',
+    name: 'Duracell Ultra AA Batteries (Pack of 4)',
+    tamilName: 'டியூராசெல் பேட்டரி',
+    category: 'electricals',
+    unit: '4 pcs pack',
+    price: 180,
+    description: 'Long-lasting power for TV remotes, wall clocks, and smart appliances.'
+  },
+  {
+    id: 'fast-charging-cable',
+    name: 'Braided Type-C Fast Charging Cable (65W)',
+    tamilName: 'சார்ஜிங் கேபிள்',
+    category: 'electricals',
+    unit: '1.2 m cable',
+    price: 199,
+    description: 'Tangle-free nylon braided 65W PD fast charging & data transfer cable.'
+  }
 ]
 
 module.exports = products

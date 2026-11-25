@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 export default function Header({
-  title = 'Easy Foods',
+  title = 'Zippo',
   showCart = true,
   showBack,
 }: HeaderProps) {
@@ -20,7 +20,7 @@ export default function Header({
   const route = useRoute<any>()
   const { totalCount } = useCart()
 
-  const isHomeScreen = title === 'Easy Foods' || title === 'Chop & Drop' || route?.name === 'Home' || route?.name === 'HomeTab'
+  const isHomeScreen = title === 'Zippo' || route?.name === 'Home' || route?.name === 'HomeTab'
   const displayBack = showBack !== undefined ? showBack : !isHomeScreen
 
   function handleBack() {
@@ -35,9 +35,13 @@ export default function Header({
       return
     }
 
-    // 2. If on Cart page, always return to Packs (ProductsTab)
+    // 2. If on Cart page, return to Store (ProductsTab)
     if (title === 'Your Cart') {
-      navigation.navigate('MainTabs', { screen: 'ProductsTab' })
+      try {
+        navigation.navigate('ProductsTab')
+      } catch {
+        navigation.navigate('MainTabs', { screen: 'ProductsTab' })
+      }
       return
     }
 
@@ -74,14 +78,14 @@ export default function Header({
         {/* Brand Logo on Home Screen */}
         {isHomeScreen && (
           <View style={styles.brandLogo}>
-            <Ionicons name="leaf" size={17} color="#ffffff" />
+            <Text style={styles.brandZText}>Z</Text>
           </View>
         )}
 
         <View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>
-            {isHomeScreen ? 'Fresh Cut Vegetables · Delivered Daily' : 'Easy Foods · Daily Fresh'}
+            {isHomeScreen ? 'Everyday Delivery Hub · Fast Delivery' : 'Zippo · Quick Commerce'}
           </Text>
         </View>
       </View>
@@ -144,6 +148,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
+  },
+  brandZText: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   title: {
     fontSize: 18,

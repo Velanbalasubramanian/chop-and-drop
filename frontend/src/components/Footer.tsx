@@ -11,26 +11,26 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer-inner">
         <div>
-          <div className="footer-brand">Easy Foods</div>
-          <p className="footer-tagline">Vegetables, cut and delivered before your kadai heats up.</p>
+          <div className="footer-brand">Zippo</div>
+          <p className="footer-tagline">Your Everyday Delivery Hub. Groceries, Veggies, Cakes & More.</p>
           <a href={adminUrl} target="_blank" rel="noopener noreferrer" className="footer-admin-link">
             Staff Portal ↗
           </a>
         </div>
         <div className="footer-col">
           <span className="footer-heading">Service area</span>
-          <p>Chennai — Adyar, T. Nagar, Velachery, Anna Nagar and nearby zones.</p>
+          <p>Chennai — Adyar, T. Nagar, Velachery, Anna Nagar, Guindy and all major zones.</p>
         </div>
         <div className="footer-col">
           <span className="footer-heading">Talk to us</span>
           <p>+91 98765 43210</p>
-          <p>hello@easyfoods.in</p>
+          <p>support@zippo.in</p>
           <Link to="/help" style={{ color: '#fc8019', fontWeight: 600, fontSize: '0.88rem' }}>
             Help &amp; Support ➔
           </Link>
         </div>
       </div>
-      <div className="footer-bottom">© {new Date().getFullYear()} Easy Foods. All rights reserved.</div>
+      <div className="footer-bottom">© {new Date().getFullYear()} Zippo Delivery Technologies. All rights reserved.</div>
     </footer>
   )
 }

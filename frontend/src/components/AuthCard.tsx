@@ -14,7 +14,7 @@ interface AuthCardProps {
 
 export default function AuthCard({
   title = 'Login Required to Place Order',
-  subtitle = 'Please log in to your account or register to confirm your fresh chopped-vegetable order and track live delivery.',
+  subtitle = 'Please log in to your account or register to confirm your order and track live delivery.',
   onSuccess,
 }: AuthCardProps) {
   const { login, register, setSession } = useAuth()

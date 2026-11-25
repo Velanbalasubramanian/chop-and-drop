@@ -13,7 +13,7 @@ const Visit = require('../models/Visit')
 // ==========================================
 // 1. SQLITE ENGINE (Persistent local engine & fallback)
 // ==========================================
-const DB_PATH = path.join(__dirname, '..', 'data', 'chop_and_drop.db')
+const DB_PATH = path.join(__dirname, '..', 'data', 'zippo.db')
 const sqlite = new DatabaseSync(DB_PATH)
 
 sqlite.exec('PRAGMA journal_mode = WAL;')
@@ -191,7 +191,7 @@ function formatSqliteTicket(row) {
 // ==========================================
 // 2. MONGODB CONNECTION
 // ==========================================
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chop_and_drop'
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/zippo'
 let isMongoConnected = false
 
 async function initMongoDB() {
@@ -209,7 +209,7 @@ async function initMongoDB() {
   } catch (err) {
     isMongoConnected = false
     console.log(`[Database] MongoDB not reachable at ${MONGODB_URI}.`)
-    console.log(`[Database] Active SQLite database running at: backend/data/chop_and_drop.db`)
+    console.log(`[Database] Active SQLite database running at: backend/data/zippo.db`)
     console.log(`[Database] (To connect to MongoDB Atlas, set MONGODB_URI in backend/.env)`)
   }
 }

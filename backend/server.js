@@ -56,7 +56,7 @@ app.use('/api', apiLimiter)
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'easy-foods-backend', timestamp: new Date().toISOString() })
+  res.json({ ok: true, service: 'zippo-backend', timestamp: new Date().toISOString() })
 })
 
 // Route Mounting
@@ -96,7 +96,7 @@ if (fs.existsSync(frontendDist)) {
 initSocket(server)
 
 server.listen(PORT, () => {
-  console.log(`[Server] Easy Foods backend running on http://localhost:${PORT}`)
+  console.log(`[Server] Zippo backend running on http://localhost:${PORT}`)
   console.log(`[Server] Real-time WebSockets (Socket.IO) enabled`)
 
   if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'changeme') {

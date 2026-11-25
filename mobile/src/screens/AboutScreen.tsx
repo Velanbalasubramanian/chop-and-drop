@@ -7,60 +7,60 @@ import { THEME } from '../config'
 export default function AboutScreen() {
   return (
     <View style={styles.container}>
-      <Header title="About Easy Foods" showCart={false} showBack />
+      <Header title="About Zippo" showCart={false} showBack />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
-          <Text style={styles.eyebrow}>The Easy Foods Story</Text>
+          <Text style={styles.eyebrow}>The Zippo Story</Text>
           <Text style={styles.title}>
-            Skip the chopping board.{'\n'}Save forty minutes every morning.
+            Your Everyday Delivery Hub.{'\n'}Groceries, Veggies, Cakes & More.
           </Text>
 
           <Text style={styles.paragraph}>
-            Easy Foods was born out of a simple reality in Chennai households and messes: cooking tasty, healthy food isn't what eats up time — it's the peeling, washing, and chopping.
+            Zippo is built for Chennai's fast-moving lifestyle. Whether you need pre-cut vegetables for quick morning cooking, daily pantry groceries, celebratory cakes, 20L water cans, fresh pooja flowers, or quick electrical replacements — Zippo delivers it all in minutes.
           </Text>
 
           <Text style={styles.paragraph}>
-            We start at 4:00 AM every morning. Vegetables arrive fresh from Koyambedu and local farms. They are washed three times in ozonated water, diced by precision food-grade machinery, packed in sealed eco-pouches, and delivered to your doorstep before 7:00 AM.
+            From farm-fresh produce sourced daily to trusted packaged goods and lightning-fast local logistics, Zippo connects your home with everything you need, hassle-free.
           </Text>
         </View>
 
         {/* 3 Pillars */}
         <View style={styles.pillarCard}>
           <View style={styles.pillarItem}>
+            <Ionicons name="flash" size={24} color={THEME.colors.primary} />
+            <Text style={styles.pillarTitle}>Lightning Fast Delivery</Text>
+            <Text style={styles.pillarDesc}>
+              Speed and reliability from local dark stores and fulfillment hubs straight to your door.
+            </Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.pillarItem}>
             <Ionicons name="sparkles" size={24} color={THEME.colors.primary} />
-            <Text style={styles.pillarTitle}>Zero Overnight Pre-Cut</Text>
+            <Text style={styles.pillarTitle}>100% Quality & Hygiene</Text>
             <Text style={styles.pillarDesc}>
-              Nothing sits in cold storage overnight. Every piece is cut the very morning it reaches your cooking pan.
+              Triple-washed vegetables, brand-sealed groceries, fresh oven-baked cakes, and sanitized water cans.
             </Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.pillarItem}>
-            <Ionicons name="water" size={24} color={THEME.colors.primary} />
-            <Text style={styles.pillarTitle}>Triple Washed & Cleaned</Text>
+            <Ionicons name="cube" size={24} color={THEME.colors.primary} />
+            <Text style={styles.pillarTitle}>Multi-Category Convenience</Text>
             <Text style={styles.pillarDesc}>
-              No mud, no pesticide residue, and no rotten leaves. Ready to drop directly into your kadai or cooker.
-            </Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.pillarItem}>
-            <Ionicons name="bicycle" size={24} color={THEME.colors.primary} />
-            <Text style={styles.pillarTitle}>Early Morning 6-7 AM Drop</Text>
-            <Text style={styles.pillarDesc}>
-              Scheduled around Chennai morning school and office cooking routines.
+              No need for 5 different apps. Order dinner veggies, water cans, and birthday cakes all in one single cart.
             </Text>
           </View>
         </View>
 
         {/* Kitchen Location */}
         <View style={styles.locationCard}>
-          <Text style={styles.locationTitle}>Central Prep Kitchen</Text>
+          <Text style={styles.locationTitle}>Zippo Fulfillment Hub</Text>
           <Text style={styles.locationAddress}>
-            Easy Foods Processing Facility{'\n'}
+            Zippo Quick-Commerce Operations{'\n'}
             14, Anna Salai, Guindy, Chennai – 600032{'\n'}
             Tamil Nadu, India
           </Text>

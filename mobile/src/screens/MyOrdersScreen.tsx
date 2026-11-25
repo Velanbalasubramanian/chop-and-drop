@@ -156,7 +156,7 @@ export default function MyOrdersScreen() {
             <View style={styles.emptyBox}>
               <Ionicons name="receipt-outline" size={48} color={THEME.colors.textMuted} />
               <Text style={styles.emptyTitle}>No orders yet</Text>
-              <Text style={styles.emptySub}>Your freshly chopped morning orders will appear here.</Text>
+              <Text style={styles.emptySub}>Your Zippo delivery orders will appear here.</Text>
               <TouchableOpacity
                 style={styles.orderNowBtn}
                 onPress={() => navigation.navigate('Products')}

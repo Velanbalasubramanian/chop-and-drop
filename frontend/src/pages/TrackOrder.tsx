@@ -7,7 +7,7 @@ import type { OrderStatus, TrackedOrder } from '../types'
 const STATUS_LABELS: Record<string, string> = {
   received: 'Order received',
   confirmed: 'Confirmed',
-  preparing: 'Being washed & chopped',
+  preparing: 'Packing & Quality Check',
   out_for_delivery: 'Out for delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled / Refunded',
@@ -287,8 +287,8 @@ export default function TrackOrder() {
                 <span className="milestone-label">Farm Hub</span>
               </div>
               <div className="milestone milestone-mid">
-                <span className="milestone-icon">🔪</span>
-                <span className="milestone-label">Fresh Chopped</span>
+                <span className="milestone-icon">📦</span>
+                <span className="milestone-label">Packed &amp; Checked</span>
               </div>
               <div className="milestone milestone-mid">
                 <span className="milestone-icon">🛵</span>

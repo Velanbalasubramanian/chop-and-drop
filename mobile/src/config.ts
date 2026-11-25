@@ -8,6 +8,8 @@ export const DEFAULT_HOST = Platform.select({
   default: 'localhost',
 })
 
+export const APP_NAME = 'Zippo'
+export const APP_TAGLINE = 'Your Everyday Delivery Hub'
 export const BACKEND_PORT = 4000
 export const API_BASE_URL = `http://${DEFAULT_HOST}:${BACKEND_PORT}`
 

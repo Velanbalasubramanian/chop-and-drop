@@ -14,7 +14,7 @@ async function sendOrderConfirmationSms(order) {
     await twilio.messages.create({
       from: TWILIO_FROM_NUMBER,
       to: order.phone.startsWith('+') ? order.phone : `+91${order.phone}`,
-      body: `Easy Foods: order ${order.id} received for slot ${order.deliverySlot}. Track it with your order ID + phone number.`,
+      body: `Zippo: order ${order.id} received for slot ${order.deliverySlot}. Track it with your order ID + phone number.`,
     })
     return { sent: true }
   } catch (err) {
@@ -40,7 +40,7 @@ async function sendOtpSms(phone, code) {
     await twilio.messages.create({
       from: TWILIO_FROM_NUMBER,
       to: toNumber,
-      body: `Your Easy Foods login code is ${code}. It expires in 5 minutes.`,
+      body: `Your Zippo login code is ${code}. It expires in 5 minutes.`,
     })
     return { sent: true }
   } catch (err) {

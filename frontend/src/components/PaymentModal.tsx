@@ -73,7 +73,7 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
         >
           <div>
             <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.85 }}>
-              Easy Foods Secure Pay · {customerName}
+              Zippo Secure Pay · {customerName}
             </div>
             <div style={{ fontSize: '1.4rem', fontWeight: 700, marginTop: '2px' }}>₹{amount}</div>
           </div>
@@ -274,7 +274,7 @@ export default function PaymentModal({ amount, customerName, onSuccess, onCancel
                       📱
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#0f8a3d', fontWeight: 600 }}>
-                      ✓ Verified Merchant: Easy Foods Fresh
+                      ✓ Verified Merchant: Zippo Express
                     </span>
                   </div>
 

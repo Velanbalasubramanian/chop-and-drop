@@ -65,14 +65,14 @@ export default function BottomTabs() {
         name="ProductsTab"
         component={ProductsScreen}
         options={{
-          tabBarLabel: 'Packs',
+          tabBarLabel: 'Store',
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <View style={styles.activeIconCircle}>
-                <Ionicons name="leaf" size={12} color="#ffffff" />
+                <Ionicons name="grid" size={12} color="#ffffff" />
               </View>
             ) : (
-              <Ionicons name="leaf-outline" size={18} color={color} />
+              <Ionicons name="grid-outline" size={18} color={color} />
             ),
         }}
       />

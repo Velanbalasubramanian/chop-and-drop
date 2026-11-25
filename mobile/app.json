@@ -1,33 +1,33 @@
 {
   "expo": {
-    "name": "Easy Foods",
-    "slug": "easy-foods",
+    "name": "Zippo",
+    "slug": "zippo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "primaryColor": "#d85d2a",
+    "primaryColor": "#ea580c",
     "splash": {
-      "backgroundColor": "#d85d2a",
+      "backgroundColor": "#ea580c",
       "resizeMode": "contain"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.easyfoods.app"
+      "bundleIdentifier": "com.zippo.app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#d85d2a",
+        "backgroundColor": "#ea580c",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
-      "package": "com.easyfoods.chopanddrop",
+      "package": "com.zippo.app",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.svg"
     }
   }
 }

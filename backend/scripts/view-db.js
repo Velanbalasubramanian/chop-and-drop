@@ -15,15 +15,15 @@ async function run() {
 
   const usingMongo = isUsingMongo()
   const activeEngine = usingMongo ? 'MongoDB (Mongoose)' : 'SQLite (Local Engine & Fallback)'
-  const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chop_and_drop'
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/zippo'
 
   console.log('\n======================================================')
-  console.log('   EASY FOODS — DATABASE VIEWER')
+  console.log('   ZIPPO — DATABASE VIEWER')
   console.log(`   Active Engine: ${activeEngine}`)
   if (usingMongo) {
     console.log(`   MongoDB URI:   ${mongoUri}`)
   } else {
-    console.log('   SQLite File:   backend/data/chop_and_drop.db')
+    console.log('   SQLite File:   backend/data/zippo.db')
   }
   console.log('======================================================\n')
 

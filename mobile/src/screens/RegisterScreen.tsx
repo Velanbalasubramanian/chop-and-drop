@@ -45,8 +45,8 @@ export default function RegisterScreen() {
     setLoading(true)
     try {
       await register(name.trim(), phone.trim(), password, email.trim() || undefined)
-      Alert.alert('Account Created! 🎉', 'Welcome to Easy Foods.', [
-        { text: 'Start Ordering', onPress: () => navigation.navigate('Home') },
+      Alert.alert('Account Created! 🎉', 'Welcome to Zippo.', [
+        { text: 'Start Ordering', onPress: () => navigation.navigate('HomeTab') },
       ])
     } catch (err: any) {
       Alert.alert('Registration Failed', err.message || 'Could not register this account.')
@@ -69,9 +69,9 @@ export default function RegisterScreen() {
               <Ionicons name="sparkles-outline" size={48} color={THEME.colors.primary} />
             </View>
 
-            <Text style={styles.title}>Join Easy Foods</Text>
+            <Text style={styles.title}>Join Zippo</Text>
             <Text style={styles.sub}>
-              Fresh cut vegetables delivered every morning right to your kitchen.
+              Groceries, fresh cuts, bakery, water cans & more delivered fast to your home.
             </Text>
 
             {/* Name */}

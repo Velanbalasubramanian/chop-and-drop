@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { BasketIcon, LeafIcon, ShieldIcon } from './Icons'
+import { BasketIcon, ShieldIcon } from './Icons'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
@@ -144,8 +144,8 @@ export default function Navbar() {
       <div className="nav-inner">
         {/* Brand */}
         <NavLink to="/" className="brand" onClick={closeMobile}>
-          <LeafIcon className="brand-icon" />
-          <span>Easy Foods</span>
+          <span className="brand-badge-z">Z</span>
+          <span>Zippo</span>
         </NavLink>
 
         {/* Desktop Navigation Links (Reduced menus with sleek More dropdown) */}

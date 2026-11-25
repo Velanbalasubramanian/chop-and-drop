@@ -195,7 +195,7 @@ export default function ProfileScreen() {
             <View style={styles.menuIconCircle}>
               <Ionicons name="information-circle-outline" size={20} color={THEME.colors.primary} />
             </View>
-            <Text style={styles.menuTitle}>About Easy Foods Chennai</Text>
+            <Text style={styles.menuTitle}>About Zippo Chennai</Text>
             <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
           </TouchableOpacity>
         </View>
@@ -209,8 +209,8 @@ export default function ProfileScreen() {
         )}
 
         <View style={styles.versionBox}>
-          <Text style={styles.versionText}>Easy Foods Mobile v1.0.0</Text>
-          <Text style={styles.versionSub}>Android & iOS Cross-Platform Build</Text>
+          <Text style={styles.versionText}>Zippo Mobile v1.0.0</Text>
+          <Text style={styles.versionSub}>Android & iOS Cross-Platform Super App</Text>
         </View>
       </ScrollView>
     </View>

@@ -11,8 +11,8 @@ const steps = [
   },
   {
     icon: ClockIcon,
-    title: 'We wash and chop that morning',
-    body: 'Nothing sits pre-cut overnight. Vegetables are cleaned and cut the same morning they reach you.',
+    title: 'Quality checked & packed fresh',
+    body: 'Picked fresh and prepared at our fulfillment hub the very morning of delivery.',
   },
   {
     icon: TruckIcon,
@@ -26,27 +26,27 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="hero-text">
-          <p className="hero-eyebrow">Fresh-cut vegetables for your kitchen</p>
+          <p className="hero-eyebrow">Your Everyday Delivery Hub</p>
           <h1>
-            Skip the chopping board.
+            Groceries, Veggies,
             <br />
-            Start cooking straight away.
+            Cakes &amp; More in Minutes.
           </h1>
           <p className="hero-sub">
-            Easy Foods washes, cuts and delivers vegetables every morning — for busy homes, hostels
-            and small hotel kitchens across Chennai. You save the forty minutes at the cutting board.
+            Zippo delivers fresh cut vegetables, pantry groceries, celebration cakes, 20L water cans,
+            pooja flowers, and electrical essentials fast to your doorstep across Chennai.
           </p>
           <div className="hero-actions">
-            <Link to="/order" className="btn btn-primary">
-              Place today's order
+            <Link to="/products" className="btn btn-primary">
+              Shop All Products
             </Link>
-            <Link to="/products" className="btn btn-ghost">
-              See what's on offer
+            <Link to="/track" className="btn btn-ghost">
+              Track Order
             </Link>
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
-          <div className="hero-floating-badge hero-badge-top">🌱 100% Farm Fresh</div>
+          <div className="hero-floating-badge hero-badge-top">⚡ Fast Delivery</div>
           <div className="hero-card hero-card-1">
             <span className="hero-card-label">Today's cut</span>
             <span className="hero-card-value">Sambar Mix</span>

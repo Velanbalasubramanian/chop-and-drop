@@ -63,9 +63,9 @@ export default function LoginScreen() {
               <Ionicons name="person-circle-outline" size={48} color={THEME.colors.primary} />
             </View>
 
-            <Text style={styles.title}>Sign in to Easy Foods</Text>
+            <Text style={styles.title}>Sign in to Zippo</Text>
             <Text style={styles.sub}>
-              Track your morning orders, view order history, and save your delivery addresses.
+              Track your deliveries, view order history, and manage saved addresses.
             </Text>
 
             {/* Phone Input */}
@@ -132,7 +132,7 @@ export default function LoginScreen() {
 
             {/* Register Link */}
             <View style={styles.footerRow}>
-              <Text style={styles.footerText}>New to Easy Foods?</Text>
+              <Text style={styles.footerText}>New to Zippo?</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerLink}>Create Account</Text>
               </TouchableOpacity>

@@ -27,8 +27,11 @@ export default function CartScreen() {
   }, [route?.name, navigation])
 
   function handleBrowse() {
-    navigation.navigate('MainTabs', { screen: 'ProductsTab' })
-    navigation.navigate('ProductsTab')
+    try {
+      navigation.navigate('ProductsTab')
+    } catch {
+      navigation.navigate('MainTabs', { screen: 'ProductsTab' })
+    }
   }
 
   if (items.length === 0) {
@@ -41,14 +44,14 @@ export default function CartScreen() {
           </View>
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
           <Text style={styles.emptySub}>
-            Choose washed and cut vegetables for your morning cooking.
+            Explore groceries, fresh cut vegetables, cakes, 20L water cans, flowers & electricals.
           </Text>
           <TouchableOpacity
             style={styles.browseBtn}
             onPress={handleBrowse}
             activeOpacity={0.85}
           >
-            <Text style={styles.browseBtnText}>Browse Vegetables</Text>
+            <Text style={styles.browseBtnText}>Explore Products</Text>
             <Ionicons name="arrow-forward" size={16} color="#ffffff" />
           </TouchableOpacity>
         </View>

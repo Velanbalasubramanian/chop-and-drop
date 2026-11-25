@@ -1,8 +1,8 @@
-# Chop & Drop (Easy Foods) — Android & iOS Mobile App 📱🥬
+# Zippo — Android & iOS Mobile Super App 📱⚡
 
-A complete, high-performance cross-platform mobile app clone for **Chop & Drop (Easy Foods)** built with **React Native**, **Expo (SDK 58)**, and **TypeScript**.
+A complete, high-performance cross-platform mobile app for **Zippo** built with **React Native**, **Expo (SDK 58)**, and **TypeScript**.
 
-Supports both **Android** and **iOS** from a single codebase, fully integrated with the existing Express backend and real-time Socket.IO updates.
+Supports both **Android** and **iOS** from a single codebase, delivering groceries, fresh cut vegetables, cakes, 20L water cans, flowers, and electricals with live real-time Socket.IO tracking.
 
 ---
 

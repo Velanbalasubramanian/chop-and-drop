@@ -9,7 +9,7 @@ import type { AdminOrder, Transaction } from '../types'
 const STATUS_LABELS: Record<string, string> = {
   received: 'Order received',
   confirmed: 'Confirmed',
-  preparing: 'Being washed & chopped',
+  preparing: 'Packing & Quality Check',
   out_for_delivery: 'Out for delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled / Refunded',
@@ -282,10 +282,10 @@ export default function MyOrders() {
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🥗</div>
               <h2>No previous orders yet</h2>
               <p style={{ color: '#686b78', maxWidth: '420px', margin: '0 auto 1.5rem' }}>
-                You haven't placed any chopped-vegetable orders yet. Browse our freshly curated packs and get cooking!
+                You haven't placed any orders yet. Browse our products and get ordering!
               </p>
               <Link to="/products" className="btn btn-primary">
-                Browse Fresh Packs ➔
+                Browse Products ➔
               </Link>
             </div>
           ) : (
@@ -770,7 +770,7 @@ export default function MyOrders() {
             >
               <div>
                 <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.85 }}>
-                  Easy Foods · Official Receipt
+                  Zippo · Official Receipt
                 </div>
                 <h2 style={{ color: '#fff', margin: '4px 0 0 0', fontSize: '1.4rem' }}>
                   {selectedReceipt.id}

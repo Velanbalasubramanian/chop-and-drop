@@ -5,6 +5,7 @@ export interface Product {
   description: string
   unit: string
   price: number
+  category?: string
 }
 
 export type PaymentMethod = 'cod' | 'online'

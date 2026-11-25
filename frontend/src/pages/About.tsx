@@ -1,36 +1,29 @@
-﻿import { LeafIcon } from '../components/Icons'
-
-export default function About() {
+﻿export default function About() {
   return (
     <section className="section page-section about-section">
       <p className="page-eyebrow">Why we started</p>
-      <h1>The chopping board was the slowest part of dinner</h1>
+      <h1>Your Everyday Delivery Hub across Chennai</h1>
       <div className="about-grid">
         <div className="about-copy">
           <p>
-            Easy Foods began in a Chennai kitchen where the vegetables took longer to cut than the
-            sambar took to cook. We started sourcing straight from Koyambedu each night, cleaning and
-            cutting before sunrise, and dropping packs at doorsteps before the morning rush began.
+            Zippo was created to make everyday essentials accessible in minutes. Whether you need pre-cut vegetables to save cooking time, daily pantry groceries, fresh cakes for celebrations, 20L water cans, pooja flowers, or quick electrical hardware — Zippo brings everything right to your doorstep.
           </p>
           <p>
-            Today we work with families, PG hostels and small hotel kitchens who would rather spend
-            their morning cooking than cutting. Every vegetable is cut the same day it's delivered —
-            nothing is chopped and stored for later.
+            Today we serve households, PG hostels, messes, and local communities who rely on speed and verified quality. Everything is packed fresh, sanitized, and delivered through our local fulfillment network.
           </p>
           <ul className="about-list">
-            <li>Sourced fresh from Koyambedu market each night</li>
-            <li>Washed three times and hand-cut every morning</li>
-            <li>Packed in resealable, reusable containers</li>
-            <li>Delivered on the schedule you choose, not a fixed one</li>
+            <li>Multi-category catalog: groceries, veggies, cakes, water &amp; electricals</li>
+            <li>Triple-washed, fresh morning vegetable cuts</li>
+            <li>Lightning fast delivery across Chennai neighborhoods</li>
+            <li>Live real-time order tracking and prompt customer assistance</li>
           </ul>
         </div>
         <div className="about-panel">
-          <LeafIcon className="about-panel-icon" />
+          <span className="brand-badge-z" style={{ width: 44, height: 44, fontSize: '1.5rem', marginBottom: '1rem' }}>Z</span>
           <p className="about-panel-quote">
-            "Our cooks used to lose an hour every morning to the cutting board. Now that hour goes into
-            the food itself."
+            "From morning cooking veggies to 20L water cans and emergency bulbs, Zippo has replaced multiple app orders with one seamless delivery."
           </p>
-          <span className="about-panel-attribution">— A mess kitchen we supply in Velachery</span>
+          <span className="about-panel-attribution">— Customer in Velachery, Chennai</span>
         </div>
       </div>
     </section>

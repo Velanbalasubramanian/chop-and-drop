@@ -7,18 +7,18 @@ import type { OrderStatus } from '../types'
 const STEP_LABELS: Record<OrderStatus, { title: string; subtitle: string; icon: keyof typeof Ionicons.glyphMap }> = {
   received: {
     title: 'Order Received',
-    subtitle: 'We have received your morning order',
+    subtitle: 'We have received your Zippo order',
     icon: 'receipt-outline',
   },
   confirmed: {
     title: 'Order Confirmed',
-    subtitle: 'Scheduled for morning kitchen prep',
+    subtitle: 'Assigned to nearest fulfillment center',
     icon: 'checkmark-circle-outline',
   },
   preparing: {
-    title: 'Washing & Chopping',
-    subtitle: 'Triple washed and cut fresh this morning',
-    icon: 'restaurant-outline',
+    title: 'Packing & Quality Check',
+    subtitle: 'Items picked, verified and carefully packed',
+    icon: 'cube-outline',
   },
   out_for_delivery: {
     title: 'Out for Delivery',
@@ -27,7 +27,7 @@ const STEP_LABELS: Record<OrderStatus, { title: string; subtitle: string; icon: 
   },
   delivered: {
     title: 'Delivered',
-    subtitle: 'Fresh cut vegetables safely delivered!',
+    subtitle: 'Your order has been safely delivered!',
     icon: 'home-outline',
   },
   cancelled: {

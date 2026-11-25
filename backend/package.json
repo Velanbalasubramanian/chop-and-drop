@@ -1,5 +1,5 @@
 {
-  "name": "chop-and-drop-backend",
+  "name": "zippo-backend",
   "private": true,
   "version": "0.1.0",
   "main": "server.js",

@@ -12,7 +12,7 @@ import type {
   User,
 } from './types'
 
-const SERVER_URL_KEY = '@chopanddrop_server_url'
+const SERVER_URL_KEY = '@zippo_server_url'
 
 export async function getServerUrl(): Promise<string> {
   try {

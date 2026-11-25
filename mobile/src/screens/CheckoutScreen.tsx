@@ -165,7 +165,7 @@ export default function CheckoutScreen() {
             </View>
             <Text style={styles.authGateTitle}>Sign In to Place Order</Text>
             <Text style={styles.authGateSub}>
-              Order place panna login kandippa theva. Please log in with OTP or your account to confirm delivery address and track real-time chopping updates.
+              Order place panna login theva. Please log in with OTP or your account to confirm delivery address and track real-time delivery updates.
             </Text>
 
             <TouchableOpacity

@@ -60,7 +60,7 @@ export default function PaymentModal({
           <View style={styles.header}>
             <View>
               <Text style={styles.headerTitle}>Fast Online Checkout</Text>
-              <Text style={styles.headerSub}>Secured by Easy Foods UPI</Text>
+              <Text style={styles.headerSub}>Secured by Zippo Pay</Text>
             </View>
             <TouchableOpacity onPress={onCancel} disabled={processing || success}>
               <Ionicons name="close" size={24} color={THEME.colors.textMuted} />

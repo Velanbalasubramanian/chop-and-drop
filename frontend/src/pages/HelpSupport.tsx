@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     q: 'How can I track my order live?',
-    a: 'Go to the Track Order page (/track) and enter your Order ID (e.g., CD-8K3F2A) along with your mobile number. With our real-time WebSocket connection, you will see instant status updates as your veggies are confirmed, washed, chopped, and delivered!',
+    a: 'Go to the Track Order page (/track) and enter your Order ID (e.g., ZP-8K3F2A) along with your mobile number. With our real-time WebSocket connection, you will see instant status updates as your order is confirmed, packed, and delivered!',
   },
 ]
 
@@ -74,7 +74,7 @@ export default function HelpSupport() {
         <p className="page-eyebrow">Customer Care</p>
         <h1>Help &amp; Support</h1>
         <p className="page-intro">
-          We're here to help you get fresh, chopped vegetables without the kitchen hassle. Reach out to our
+          We're here to help you with all your delivery needs across groceries, vegetables, cakes, water &amp; electricals. Reach out to our
           team directly or raise a support ticket below.
         </p>
       </div>
@@ -164,11 +164,11 @@ export default function HelpSupport() {
             For corporate, bulk &amp; general queries
           </p>
           <a
-            href="mailto:support@easyfoods.in"
+            href="mailto:support@zippo.in"
             className="btn btn-ghost"
             style={{ fontSize: '0.88rem', padding: '0.6rem 1.2rem', textDecoration: 'none' }}
           >
-            support@easyfoods.in
+            support@zippo.in
           </a>
         </div>
       </div>
@@ -316,7 +316,7 @@ export default function HelpSupport() {
             Frequently Asked Questions
           </h2>
           <p style={{ color: '#686b78', fontSize: '0.88rem', marginBottom: '1.5rem' }}>
-            Quick answers to common questions about Easy Foods.
+            Quick answers to common questions about Zippo.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

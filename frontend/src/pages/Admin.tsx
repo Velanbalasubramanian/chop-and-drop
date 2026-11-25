@@ -26,8 +26,8 @@ const BACKUP_POLL_INTERVAL_MS = 60000
 
 export default function Admin() {
   const [password, setPassword] = useState('')
-  const [token, setToken] = useState(() => sessionStorage.getItem('chop_drop_admin_token') || '')
-  const [authed, setAuthed] = useState(() => Boolean(sessionStorage.getItem('chop_drop_admin_token')))
+  const [token, setToken] = useState(() => sessionStorage.getItem('zippo_admin_token') || '')
+  const [authed, setAuthed] = useState(() => Boolean(sessionStorage.getItem('zippo_admin_token')))
   const [loginError, setLoginError] = useState('')
   const [notification, setNotification] = useState('')
   const [socketConnected, setSocketConnected] = useState(false)
@@ -71,7 +71,7 @@ export default function Admin() {
         setLoginError(err instanceof Error ? err.message : 'Could not load the dashboard.')
         setAuthed(false)
         setToken('')
-        sessionStorage.removeItem('chop_drop_admin_token')
+        sessionStorage.removeItem('zippo_admin_token')
       } finally {
         if (showSpinner) setLoading(false)
       }
@@ -164,7 +164,7 @@ export default function Admin() {
       return
     }
 
-    sessionStorage.setItem('chop_drop_admin_token', result.token)
+    sessionStorage.setItem('zippo_admin_token', result.token)
     setToken(result.token)
     setAuthed(true)
     setPassword('')
@@ -172,7 +172,7 @@ export default function Admin() {
   }
 
   function handleLogout() {
-    sessionStorage.removeItem('chop_drop_admin_token')
+    sessionStorage.removeItem('zippo_admin_token')
     setToken('')
     setAuthed(false)
     setOrders([])
@@ -228,7 +228,7 @@ export default function Admin() {
       <div className="admin-login-fullscreen">
         <div className="admin-login-card">
           <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center', color: '#294a2c' }}><ShieldIcon size={42} /></div>
-          <h1 style={{ fontSize: '1.6rem', margin: '0 0 0.3rem', color: '#1b4332' }}>Easy Foods</h1>
+          <h1 style={{ fontSize: '1.6rem', margin: '0 0 0.3rem', color: '#1b4332' }}>Zippo</h1>
           <p style={{ fontWeight: 700, color: 'var(--carrot-dark)', margin: '0 0 0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Staff &amp; Admin Console
           </p>
@@ -302,7 +302,7 @@ export default function Admin() {
         <div className="admin-portal-header-inner">
           <div className="admin-portal-brand">
             <span style={{ display: 'inline-flex', alignItems: 'center', color: '#1b4332' }}><ShieldIcon size={20} /></span>
-            <span>Easy Foods</span>
+            <span>Zippo</span>
             <span className="admin-portal-badge">Admin Console</span>
           </div>
 
