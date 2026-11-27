@@ -14,25 +14,40 @@ const CATEGORIES = [
 ]
 
 export default function Products() {
-  const { products } = useCart()
+  const { products, stores, stockAlert, clearStockAlert } = useCart()
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
+  const storeParam = searchParams.get('store')
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'All')
+  const [selectedStore, setSelectedStore] = useState(storeParam || 'All')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (categoryParam) {
       setSelectedCategory(categoryParam)
-      setSearch('')
+    }
+    if (storeParam) {
+      setSelectedStore(storeParam)
     }
     // Always scroll immediately to top
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [categoryParam])
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [categoryParam, storeParam])
 
   const handleSelectCategory = (catId: string) => {
     setSelectedCategory(catId)
-    setSearchParams(catId === 'All' ? {} : { category: catId })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const newParams: Record<string, string> = {}
+    if (catId !== 'All') newParams.category = catId
+    if (selectedStore !== 'All') newParams.store = selectedStore
+    setSearchParams(newParams)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }
+
+  const handleSelectStore = (stId: string) => {
+    setSelectedStore(stId)
+    const newParams: Record<string, string> = {}
+    if (selectedCategory !== 'All') newParams.category = selectedCategory
+    if (stId !== 'All') newParams.store = stId
+    setSearchParams(newParams)
   }
 
   const filtered = useMemo(() => {
@@ -40,22 +55,57 @@ export default function Products() {
       const q = search.trim().toLowerCase()
       const matchesSearch =
         !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.tamilName.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
+        (p.name?.toLowerCase() || '').includes(q) ||
+        (p.tamilName?.toLowerCase() || '').includes(q) ||
+        (p.description?.toLowerCase() || '').includes(q) ||
+        (p.storeName?.toLowerCase() || '').includes(q) ||
+        ((p as any).partnerName?.toLowerCase() || '').includes(q) ||
+        ((p as any).ownerName?.toLowerCase() || '').includes(q)
 
       if (!matchesSearch) return false
 
+      if (selectedStore !== 'All') {
+        const matchesThisStore = p.partnerId === selectedStore || p.storeName === selectedStore
+        if (!matchesThisStore) return false
+      }
+
+      const cat = (p.category || '').toLowerCase()
       if (selectedCategory === 'All') return true
       if (selectedCategory === 'cut_veggies') {
-        return p.category === 'cut_veggies' || (!p.category && (p.id.includes('mix') || p.id.includes('bulk')))
+        return cat === 'cut_veggies' || cat.includes('veg') || (!p.category && (p.id.includes('mix') || p.id.includes('bulk')))
       }
-      return p.category === selectedCategory
+      return cat === selectedCategory.toLowerCase() || cat.includes(selectedCategory.toLowerCase())
     })
-  }, [products, selectedCategory, search])
+  }, [products, selectedCategory, selectedStore, search])
 
   return (
     <section className="section page-section">
+      {stockAlert && (
+        <div style={{
+          background: '#fef2f2',
+          border: '1px solid #fca5a5',
+          borderRadius: '8px',
+          padding: '10px 16px',
+          maxWidth: '700px',
+          margin: '0 auto 1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          color: '#dc2626',
+          fontWeight: 700,
+          fontSize: '0.95rem',
+        }}>
+          <span>⚠️ {stockAlert}</span>
+          <button
+            type="button"
+            onClick={clearStockAlert}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, color: '#dc2626', fontSize: '1rem' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 2rem' }}>
         <p className="page-eyebrow">Zippo Super Store</p>
         <h1 style={{ marginBottom: '0.5rem' }}>Everything You Need, Delivered Fast</h1>
@@ -138,6 +188,48 @@ export default function Products() {
             )
           })}
         </div>
+
+        {/* Store Filter Pills (Swiggy Multi-store Filter) */}
+        {stores.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.25rem' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', marginRight: '4px' }}>🏪 Outlets:</span>
+            <button
+              type="button"
+              onClick={() => handleSelectStore('All')}
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '16px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                border: selectedStore === 'All' ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                background: selectedStore === 'All' ? '#059669' : '#f8fafc',
+                color: selectedStore === 'All' ? '#ffffff' : '#334155',
+                cursor: 'pointer',
+              }}
+            >
+              All Stores
+            </button>
+            {stores.map((st) => (
+              <button
+                key={st.id}
+                type="button"
+                onClick={() => handleSelectStore(st.id)}
+                style={{
+                  padding: '0.35rem 0.8rem',
+                  borderRadius: '16px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  border: selectedStore === st.id ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                  background: selectedStore === st.id ? '#059669' : '#ffffff',
+                  color: selectedStore === st.id ? '#ffffff' : '#334155',
+                  cursor: 'pointer',
+                }}
+              >
+                🏪 {st.storeName}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (

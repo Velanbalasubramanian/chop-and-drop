@@ -14,6 +14,8 @@ import ProductCard from '../components/ProductCard'
 import CartBar from '../components/CartBar'
 import { THEME } from '../config'
 import { useCart } from '../context/CartContext'
+import { getStores } from '../api'
+import type { Store } from '../types'
 
 const HOME_CATEGORIES = [
   { id: 'cut_veggies', title: 'Cut Veggies', target: 'Cut Veggies', icon: 'nutrition-outline', color: '#16a34a', bg: '#f0fdf4' },
@@ -27,7 +29,21 @@ const HOME_CATEGORIES = [
 export default function HomeScreen() {
   const navigation = useNavigation<any>()
   const { products, refreshProducts } = useCart()
+  const [stores, setStores] = React.useState<Store[]>([])
   const [refreshing, setRefreshing] = React.useState(false)
+
+  const loadStores = React.useCallback(async () => {
+    try {
+      const data = await getStores()
+      if (data && data.length > 0) {
+        setStores(data)
+      }
+    } catch {}
+  }, [])
+
+  React.useEffect(() => {
+    loadStores()
+  }, [loadStores])
 
   const handleCategoryPress = (targetCategory: string) => {
     navigation.navigate('ProductsTab', {
@@ -38,9 +54,9 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true)
-    await refreshProducts()
+    await Promise.all([refreshProducts(), loadStores()])
     setRefreshing(false)
-  }, [refreshProducts])
+  }, [refreshProducts, loadStores])
 
   const popular = products.slice(0, 3)
 
@@ -98,6 +114,77 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* SWIGGY STYLE: FEATURED STORES & BAKERIES */}
+        {stores.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <View style={styles.sectionHeaderRow}>
+              <View>
+                <Text style={styles.sectionTitle}>🏪 Top Stores &amp; Bakeries</Text>
+                <Text style={styles.sectionSub}>Tap to explore direct outlet menus &amp; bakes</Text>
+              </View>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingTop: 4, paddingBottom: 6 }}
+            >
+              {stores.map((st) => (
+                <TouchableOpacity
+                  key={st.id}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    navigation.navigate('ProductsTab', {
+                      store: st.storeName,
+                      category:
+                        st.category === 'cakes'
+                          ? 'Cakes & Bakery'
+                          : st.category === 'grocery'
+                          ? 'Groceries'
+                          : 'Cut Veggies',
+                      timestamp: Date.now(),
+                    })
+                  }
+                  style={styles.storeCard}
+                >
+                  <View
+                    style={[
+                      styles.storeCardHeader,
+                      {
+                        backgroundColor:
+                          st.category === 'cakes'
+                            ? '#e11d48'
+                            : st.category === 'grocery'
+                            ? '#ea580c'
+                            : '#059669',
+                      },
+                    ]}
+                  >
+                    <View style={styles.storeBadgeRow}>
+                      <Text style={styles.storeCatBadge}>{st.category.toUpperCase()}</Text>
+                      <Text style={styles.storeRatingBadge}>★ {st.rating || 4.9}</Text>
+                    </View>
+                    <Text style={styles.storeCardName} numberOfLines={1}>
+                      {st.storeName}
+                    </Text>
+                    <Text style={styles.storeCardMeta}>
+                      ⚡ {st.deliveryTime || '20-25 mins'} • 📍 {st.address}
+                    </Text>
+                  </View>
+                  <View style={styles.storeCardBody}>
+                    <Text style={styles.storePopularItems} numberOfLines={1}>
+                      {st.sampleItems && st.sampleItems.length > 0
+                        ? `Items: ${st.sampleItems.slice(0, 2).join(', ')}`
+                        : `${st.itemCount || 0} items available`}
+                    </Text>
+                    <Text style={styles.storeExploreLink}>Open Menu →</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Shop By Category Grid */}
         <View style={styles.sectionHeaderRow}>
@@ -428,5 +515,74 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     fontWeight: '700',
     fontSize: 13,
+  },
+  storeCard: {
+    width: 250,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 6,
+  },
+  storeCardHeader: {
+    padding: 12,
+  },
+  storeBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  storeCatBadge: {
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '800',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  storeRatingBadge: {
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
+    fontSize: 10,
+    fontWeight: '800',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  storeCardName: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  storeCardMeta: {
+    color: '#f8fafc',
+    fontSize: 11,
+    marginTop: 2,
+    opacity: 0.9,
+  },
+  storeCardBody: {
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  storePopularItems: {
+    fontSize: 11,
+    color: '#64748b',
+    flex: 1,
+    marginRight: 6,
+  },
+  storeExploreLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: THEME.colors.primary,
   },
 })

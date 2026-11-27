@@ -32,6 +32,13 @@ const orderSchema = new mongoose.Schema(
     refundRequestedAt: { type: String, default: '' },
     refundProcessedAt: { type: String, default: '' },
     refundUpi: { type: String, default: '' },
+    partnerId: { type: String, default: '' },
+    partnerStoreName: { type: String, default: '' },
+    partnerPhone: { type: String, default: '' },
+    partnerName: { type: String, default: '' },
+    followUpNotes: { type: String, default: '' },
+    riderName: { type: String, default: '' },
+    riderPhone: { type: String, default: '' },
     receivedAt: { type: String, default: () => new Date().toISOString() },
   },
   {

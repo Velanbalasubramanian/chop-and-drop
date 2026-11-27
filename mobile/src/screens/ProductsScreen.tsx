@@ -49,7 +49,7 @@ const CATEGORY_MAP: Record<string, string> = {
 
 export default function ProductsScreen() {
   const route = useRoute<any>()
-  const { products, refreshProducts } = useCart()
+  const { products, refreshProducts, stockAlert, clearStockAlert } = useCart()
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [refreshing, setRefreshing] = useState(false)
@@ -63,10 +63,26 @@ export default function ProductsScreen() {
     setRefreshing(false)
   }, [refreshProducts])
 
-  const handleSelectCategory = (catName: string, animated = true) => {
+  const scrollToTop = () => {
+    try {
+      productsListRef.current?.scrollToOffset({ offset: 0, animated: false })
+      requestAnimationFrame(() => {
+        productsListRef.current?.scrollToOffset({ offset: 0, animated: false })
+      })
+      setTimeout(() => {
+        productsListRef.current?.scrollToOffset({ offset: 0, animated: false })
+      }, 50)
+      setTimeout(() => {
+        productsListRef.current?.scrollToOffset({ offset: 0, animated: false })
+      }, 150)
+    } catch {
+      // Safe fallback
+    }
+  }
+
+  const handleSelectCategory = (catName: string) => {
     setSelectedCategory(catName)
-    // Scroll products list immediately to top (offset 0)
-    productsListRef.current?.scrollToOffset({ offset: 0, animated })
+    scrollToTop()
 
     // Scroll horizontal category bar to the active pill
     const catIndex = CATEGORIES.indexOf(catName)
@@ -92,31 +108,40 @@ export default function ProductsScreen() {
       const resolved = CATEGORY_MAP[rawTarget] || rawTarget
       if (CATEGORIES.includes(resolved)) {
         setSearch('')
-        handleSelectCategory(resolved, true)
+        handleSelectCategory(resolved)
+        scrollToTop()
       }
     }
-  }, [route.params?.category, route.params?.timestamp])
+    if (route.params?.store) {
+      setSearch(route.params.store)
+      scrollToTop()
+    }
+  }, [route.params?.category, route.params?.store, route.params?.timestamp])
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const q = search.toLowerCase().trim()
       const matchesSearch =
         !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.tamilName.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
+        (p.name?.toLowerCase() || '').includes(q) ||
+        (p.tamilName?.toLowerCase() || '').includes(q) ||
+        (p.description?.toLowerCase() || '').includes(q) ||
+        (p.storeName?.toLowerCase() || '').includes(q) ||
+        ((p as any).partnerName?.toLowerCase() || '').includes(q) ||
+        ((p as any).ownerName?.toLowerCase() || '').includes(q)
 
       if (!matchesSearch) return false
 
+      const cat = (p.category || '').toLowerCase()
       if (selectedCategory === 'All') return true
       if (selectedCategory === 'Cut Veggies') {
-        return p.category === 'cut_veggies' || (!p.category && (p.id.includes('mix') || p.id.includes('bulk')))
+        return cat === 'cut_veggies' || cat.includes('veg') || (!p.category && (p.id.includes('mix') || p.id.includes('bulk')))
       }
-      if (selectedCategory === 'Groceries') return p.category === 'grocery'
-      if (selectedCategory === 'Cakes & Bakery') return p.category === 'cakes'
-      if (selectedCategory === '20L Water Cans') return p.category === 'water'
-      if (selectedCategory === 'Pooja Flowers') return p.category === 'flowers'
-      if (selectedCategory === 'Electricals') return p.category === 'electricals'
+      if (selectedCategory === 'Groceries') return cat === 'grocery' || cat === 'groceries'
+      if (selectedCategory === 'Cakes & Bakery') return cat === 'cakes' || cat.includes('cake') || cat.includes('bake')
+      if (selectedCategory === '20L Water Cans') return cat === 'water' || cat.includes('water')
+      if (selectedCategory === 'Pooja Flowers') return cat === 'flowers' || cat.includes('flower')
+      if (selectedCategory === 'Electricals') return cat === 'electricals' || cat.includes('elect')
       return true
     })
   }, [products, search, selectedCategory])
@@ -160,7 +185,7 @@ export default function ProductsScreen() {
             return (
               <TouchableOpacity
                 style={[styles.catPill, isSelected && styles.catPillActive]}
-                onPress={() => handleSelectCategory(item, true)}
+                onPress={() => handleSelectCategory(item)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.catText, isSelected && styles.catTextActive]}>
@@ -172,11 +197,23 @@ export default function ProductsScreen() {
         />
       </View>
 
+      {/* Real-time Red Stock Alert Toast Banner */}
+      {stockAlert && (
+        <View style={styles.stockAlertBanner}>
+          <Ionicons name="alert-circle" size={18} color="#dc2626" />
+          <Text style={styles.stockAlertText}>{stockAlert}</Text>
+          <TouchableOpacity onPress={clearStockAlert} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons name="close" size={16} color="#dc2626" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Products List */}
       <FlatList
         ref={productsListRef}
         data={filteredProducts}
         keyExtractor={(item) => item.id}
+        extraData={products}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -272,5 +309,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: THEME.colors.textMuted,
     marginTop: 4,
+  },
+  stockAlertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    borderRadius: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  stockAlertText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#dc2626',
+    lineHeight: 16,
   },
 })

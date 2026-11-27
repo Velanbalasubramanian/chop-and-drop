@@ -5,7 +5,11 @@ import type {
   OrderResponse,
   OrderStatus,
   OtpRequestResult,
+  Partner,
+  PartnerAuthResult,
+  PartnerStats,
   Product,
+  Store,
   TrackedOrder,
   User,
   VisitsSummary,
@@ -267,5 +271,144 @@ export async function fetchProducts(): Promise<Product[]> {
   } catch {}
   const { products } = await import('./data/products')
   return products
+}
+
+export async function fetchStores(): Promise<Store[]> {
+  try {
+    const res = await fetch(apiUrl('/api/stores'))
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data.stores)) return data.stores
+    }
+  } catch (err) {
+    console.error('Failed to fetch stores:', err)
+  }
+  return []
+}
+
+export async function fetchStoreById(storeId: string): Promise<{ ok: boolean; store: Store & { products: Product[] } }> {
+  const res = await fetch(apiUrl(`/api/stores/${encodeURIComponent(storeId)}`))
+  const data = await res.json()
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to load store.')
+  }
+  return data
+}
+
+// ==========================================
+// PARTNER PORTAL & MANAGEMENT APIS
+// ==========================================
+
+export async function partnerLogin(phone: string, password: string): Promise<PartnerAuthResult> {
+  const res = await fetch(apiUrl('/api/partners/login'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, password }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data.error || 'Partner login failed.')
+  }
+  return data
+}
+
+export async function fetchPartnerMe(token: string): Promise<{ partner: Partner }> {
+  const res = await fetch(apiUrl('/api/partners/me'), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Partner session expired.')
+  return res.json()
+}
+
+export async function fetchPartnerOrders(token: string): Promise<{ orders: AdminOrder[]; partnerCategory: string }> {
+  const res = await fetch(apiUrl('/api/partners/orders'), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Could not load partner orders.')
+  return res.json()
+}
+
+export async function updatePartnerOrderStatus(token: string, orderId: string, status: string): Promise<any> {
+  const res = await fetch(apiUrl(`/api/partners/orders/${orderId}/status`), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not update order status.')
+  return data
+}
+
+export async function fetchPartnerStats(token: string): Promise<PartnerStats> {
+  const res = await fetch(apiUrl('/api/partners/stats'), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Could not load partner metrics.')
+  return res.json()
+}
+
+// Admin Partner Management
+export async function fetchAdminPartners(token: string): Promise<{ partners: Partner[] }> {
+  const res = await fetch(apiUrl('/api/admin/partners'), {
+    headers: getAdminAuthHeaders(token),
+  })
+  if (!res.ok) throw new Error('Could not load partners.')
+  return res.json()
+}
+
+export async function createAdminPartner(
+  token: string,
+  partnerData: {
+    name: string
+    phone: string
+    password: string
+    category: string
+    storeName?: string
+    address?: string
+    email?: string
+  }
+): Promise<{ ok: boolean; partner: Partner; message: string }> {
+  const res = await fetch(apiUrl('/api/admin/partners'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAdminAuthHeaders(token),
+    },
+    body: JSON.stringify(partnerData),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not create partner.')
+  return data
+}
+
+export async function updateAdminPartner(
+  token: string,
+  partnerId: string,
+  updates: Partial<Partner> & { password?: string }
+): Promise<{ ok: boolean; partner: Partner }> {
+  const res = await fetch(apiUrl(`/api/admin/partners/${partnerId}`), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAdminAuthHeaders(token),
+    },
+    body: JSON.stringify(updates),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not update partner.')
+  return data
+}
+
+export async function deleteAdminPartner(token: string, partnerId: string): Promise<{ ok: boolean }> {
+  const res = await fetch(apiUrl(`/api/admin/partners/${partnerId}`), {
+    method: 'DELETE',
+    headers: getAdminAuthHeaders(token),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not delete partner.')
+  return data
 }
 

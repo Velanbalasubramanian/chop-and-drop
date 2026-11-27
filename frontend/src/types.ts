@@ -1,3 +1,18 @@
+export interface Store {
+  id: string
+  storeName: string
+  ownerName?: string
+  phone?: string
+  category: string
+  address: string
+  rating: number
+  deliveryTime: string
+  description?: string
+  bannerImage?: string
+  itemCount?: number
+  sampleItems?: string[]
+}
+
 export interface Product {
   id: string
   name: string
@@ -6,6 +21,13 @@ export interface Product {
   unit: string
   price: number
   category?: string
+  partnerId?: string
+  storeName?: string
+  storeRating?: number
+  storeDeliveryTime?: string
+  storeAddress?: string
+  stockQuantity?: number
+  isAvailable?: boolean
 }
 
 export type PaymentMethod = 'cod' | 'online'
@@ -23,6 +45,7 @@ export interface OrderPayload {
   paymentStatus?: PaymentStatus
   amount?: number
   transactionId?: string
+  cartItems?: { productId: string; name: string; quantity: number }[]
 }
 
 export interface OrderResponse {
@@ -81,6 +104,8 @@ export interface AdminOrder {
   refundProcessedAt?: string
   refundUpi?: string
   receivedAt: string
+  matchingItems?: string[]
+  isPartnerCategory?: boolean
 }
 
 export interface User {
@@ -139,4 +164,32 @@ export interface Transaction {
   refundProcessedAt?: string
   date: string
   items: string
+}
+
+export interface Partner {
+  id: string
+  name: string
+  phone: string
+  email?: string
+  category: string
+  storeName?: string
+  address?: string
+  status: 'active' | 'inactive'
+  createdAt: string
+}
+
+export interface PartnerAuthResult {
+  ok: boolean
+  token: string
+  partner: Partner
+}
+
+export interface PartnerStats {
+  total: number
+  received: number
+  preparing: number
+  outForDelivery: number
+  delivered: number
+  revenue: number
+  category: string
 }

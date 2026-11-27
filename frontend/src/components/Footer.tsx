@@ -14,8 +14,11 @@ export default function Footer() {
           <div className="footer-brand">Zippo</div>
           <p className="footer-tagline">Your Everyday Delivery Hub. Groceries, Veggies, Cakes & More.</p>
           <a href={adminUrl} target="_blank" rel="noopener noreferrer" className="footer-admin-link">
-            Staff Portal ↗
+            Admin Portal ↗
           </a>
+          <Link to="/partner" className="footer-admin-link" style={{ marginLeft: '0.85rem', color: '#ea580c', fontWeight: 700 }}>
+            Partner Portal ↗
+          </Link>
         </div>
         <div className="footer-col">
           <span className="footer-heading">Service area</span>

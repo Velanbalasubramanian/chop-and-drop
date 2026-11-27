@@ -12,38 +12,51 @@ import {
   View,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import Header from '../components/Header'
 import { THEME } from '../config'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>()
+  const route = useRoute<any>()
   const { login } = useAuth()
 
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState(route.params?.phone || '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   async function handleLogin() {
+    setError(null)
+    setSuccessMessage(null)
     if (!phone.trim() || phone.trim().length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter your 10-digit mobile number.')
+      setError('Please enter a 10-digit mobile number.')
       return
     }
     if (!password) {
-      Alert.alert('Required', 'Please enter your password.')
+      setError('Please enter your password.')
       return
     }
 
     setLoading(true)
     try {
       await login(phone.trim(), password)
-      Alert.alert('Welcome Back! 👋', 'Logged in successfully.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ])
+      setSuccessMessage('Welcome Back! 👋 Logged in successfully.')
+      setTimeout(() => {
+        try {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          })
+        } catch {
+          navigation.navigate('MainTabs', { screen: 'HomeTab' })
+        }
+      }, 1200)
     } catch (err: any) {
-      Alert.alert('Login Failed', err.message || 'Incorrect phone or password.')
+      setError(err.message || 'Incorrect phone or password.')
     } finally {
       setLoading(false)
     }
@@ -67,6 +80,24 @@ export default function LoginScreen() {
             <Text style={styles.sub}>
               Track your deliveries, view order history, and manage saved addresses.
             </Text>
+
+            {successMessage && (
+              <View style={styles.successBox}>
+                <Ionicons name="checkmark-circle" size={24} color="#059669" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.successTitle}>Logged In! 👋</Text>
+                  <Text style={styles.successText}>{successMessage}</Text>
+                  <Text style={styles.successSub}>Taking you to the store now...</Text>
+                </View>
+              </View>
+            )}
+
+            {error && (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={18} color="#dc2626" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
 
             {/* Phone Input */}
             <View style={styles.inputGroup}>
@@ -107,13 +138,31 @@ export default function LoginScreen() {
 
             {/* Login Button */}
             <TouchableOpacity
-              style={styles.loginBtn}
-              onPress={handleLogin}
+              style={[
+                styles.loginBtn,
+                successMessage ? { backgroundColor: '#059669' } : undefined,
+              ]}
+              onPress={() => {
+                if (successMessage) {
+                  try {
+                    navigation.navigate('MainTabs', { screen: 'HomeTab' })
+                  } catch {
+                    navigation.navigate('HomeTab')
+                  }
+                  return
+                }
+                handleLogin()
+              }}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
+              ) : successMessage ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Ionicons name="checkmark-circle" size={18} color="#ffffff" />
+                  <Text style={styles.loginBtnText}>Success! Entering Store →</Text>
+                </View>
               ) : (
                 <Text style={styles.loginBtnText}>Log In</Text>
               )}
@@ -259,5 +308,54 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: THEME.colors.primary,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginVertical: 10,
+    gap: 8,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#dc2626',
+    lineHeight: 18,
+  },
+  successBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1.5,
+    borderColor: '#6ee7b7',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginVertical: 12,
+    gap: 10,
+  },
+  successTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#065f46',
+    marginBottom: 2,
+  },
+  successText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#047857',
+    lineHeight: 18,
+  },
+  successSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#059669',
+    marginTop: 4,
   },
 })

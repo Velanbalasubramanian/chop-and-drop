@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext'
 
 const mainLinks = [
   { to: '/', label: 'Home', icon: '🏠' },
-  { to: '/products', label: 'Products', icon: '🥬' },
+  { to: '/products', label: 'Stores & Menu', icon: '🏪' },
   { to: '/about', label: 'About', icon: 'ℹ️' },
   { to: '/track', label: 'Track Order', icon: '🛵' },
   { to: '/help', label: 'Help & Support', icon: '💬' },

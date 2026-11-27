@@ -4,12 +4,13 @@
   "private": true,
   "description": "Zippo — Everyday Quick Commerce Delivery Super App",
   "scripts": {
-    "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix admin",
-    "build": "npm run build --prefix frontend && npm run build --prefix admin",
+    "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix admin && npm install --prefix partner",
+    "build": "npm run build --prefix frontend && npm run build --prefix admin && npm run build --prefix partner",
     "start": "node backend/server.js",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:admin": "npm run dev --prefix admin",
+    "dev:partner": "npm run dev --prefix partner",
     "mobile": "npm start --prefix mobile",
     "mobile:android": "npm run android --prefix mobile",
     "mobile:ios": "npm run ios --prefix mobile"

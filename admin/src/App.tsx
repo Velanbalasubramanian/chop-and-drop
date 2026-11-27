@@ -2,16 +2,21 @@ import { FormEvent, useCallback, useEffect, useState } from 'react'
 import {
   adminLogin,
   approveOrderRefund,
+  createAdminPartner,
+  deleteAdminPartner,
   fetchAdminOrders,
+  fetchAdminPartners,
   fetchAdminUsers,
   fetchSupportTickets,
   fetchVisitsSummary,
   rejectOrderRefund,
+  updateAdminPartner,
   updateOrderStatus,
+  updateOrderFollowUp,
   updateTicketStatus,
 } from './api'
 import { getSocket } from './socket'
-import type { AdminOrder, OrderStatus, SupportTicket, User, VisitsSummary } from './types'
+import type { AdminOrder, OrderStatus, Partner, SupportTicket, User, VisitsSummary } from './types'
 import PasswordInput from './components/PasswordInput'
 import { ShieldIcon } from './components/Icons'
 
@@ -24,6 +29,16 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: 'Cancelled',
 }
 
+const PARTNER_CATEGORIES = [
+  { id: 'All', label: 'All Categories (Super Partner)', icon: '⚡' },
+  { id: 'cut_veggies', label: 'Fresh Cut Veggies', icon: '🍏' },
+  { id: 'grocery', label: 'Groceries', icon: '🛒' },
+  { id: 'cakes', label: 'Cakes & Bakery', icon: '🎂' },
+  { id: 'water', label: '20L Water Cans', icon: '💧' },
+  { id: 'flowers', label: 'Pooja Flowers', icon: '🌼' },
+  { id: 'electricals', label: 'Electricals', icon: '⚡' },
+]
+
 const BACKUP_POLL_INTERVAL_MS = 60000
 
 export default function App() {
@@ -34,8 +49,8 @@ export default function App() {
   const [notification, setNotification] = useState('')
   const [socketConnected, setSocketConnected] = useState(false)
 
-  // Active dashboard tab: 'orders' | 'refunds' | 'tickets' | 'users' | 'traffic'
-  const [activeTab, setActiveTab] = useState<'orders' | 'refunds' | 'tickets' | 'users' | 'traffic'>('orders')
+  // Active dashboard tab: 'partners' | 'orders' | 'refunds' | 'tickets' | 'users' | 'traffic'
+  const [activeTab, setActiveTab] = useState<'partners' | 'orders' | 'refunds' | 'tickets' | 'users' | 'traffic'>('partners')
 
   // Data states
   const [orders, setOrders] = useState<AdminOrder[]>([])
@@ -43,12 +58,37 @@ export default function App() {
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [visits, setVisits] = useState<VisitsSummary | null>(null)
+  const [partners, setPartners] = useState<Partner[]>([])
+
+  // Partner creation modal state
+  const [showAddPartnerModal, setShowAddPartnerModal] = useState(false)
+  const [newPartnerForm, setNewPartnerForm] = useState({
+    name: '',
+    phone: '',
+    password: '',
+    category: 'cakes',
+    storeName: '',
+    address: 'Anna Nagar, Chennai',
+    deliveryTime: '20-25 mins',
+    description: '',
+    email: '',
+  })
+  const [partnerSubmitting, setPartnerSubmitting] = useState(false)
+  const [partnerActionMsg, setPartnerActionMsg] = useState('')
 
   // Filters & search
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all')
+  const [orderStoreFilter, setOrderStoreFilter] = useState<string>('all')
   const [orderSearch, setOrderSearch] = useState<string>('')
   const [ticketStatusFilter, setTicketStatusFilter] = useState<string>('all')
   const [refundFilter, setRefundFilter] = useState<'all' | 'pending' | 'settled'>('all')
+
+  // Order Tracking & Follow-up Modal states
+  const [trackingOrder, setTrackingOrder] = useState<AdminOrder | null>(null)
+  const [followUpNotesInput, setFollowUpNotesInput] = useState('')
+  const [riderNameInput, setRiderNameInput] = useState('')
+  const [riderPhoneInput, setRiderPhoneInput] = useState('')
+  const [followUpSaving, setFollowUpSaving] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -57,11 +97,12 @@ export default function App() {
     async (authToken: string, showSpinner = false) => {
       if (showSpinner) setLoading(true)
       try {
-        const [ordersData, visitsData, ticketsData, usersData] = await Promise.all([
+        const [ordersData, visitsData, ticketsData, usersData, partnersData] = await Promise.all([
           fetchAdminOrders(authToken).catch(() => ({ orders: [], statuses: [] })),
           fetchVisitsSummary(authToken).catch(() => null),
           fetchSupportTickets(authToken).catch(() => ({ tickets: [] })),
           fetchAdminUsers(authToken).catch(() => ({ users: [] })),
+          fetchAdminPartners(authToken).catch(() => ({ partners: [] })),
         ])
 
         setOrders(ordersData.orders || [])
@@ -69,6 +110,7 @@ export default function App() {
         setVisits(visitsData)
         setTickets(ticketsData.tickets || [])
         setUsers(usersData.users || [])
+        setPartners(partnersData.partners || [])
         setLastUpdated(new Date())
       } catch (err) {
         setLoginError(err instanceof Error ? err.message : 'Could not load the dashboard.')
@@ -153,6 +195,16 @@ export default function App() {
       })
     })
 
+    // Real-time: partner updates
+    socket.on('partners_updated', (updatedPartners: any[]) => {
+      if (Array.isArray(updatedPartners)) {
+        setPartners(updatedPartners)
+      }
+    })
+    socket.on('partner_deleted', ({ partnerId }: { partnerId: string }) => {
+      setPartners((prev) => prev.filter((p) => p.id !== partnerId))
+    })
+
     // Gentle fallback periodic sync
     const interval = setInterval(() => loadAll(token), BACKUP_POLL_INTERVAL_MS)
 
@@ -163,6 +215,8 @@ export default function App() {
       socket.off('order_refund_updated')
       socket.off('new_ticket')
       socket.off('new_visit')
+      socket.off('partners_updated')
+      socket.off('partner_deleted')
       clearInterval(interval)
     }
   }, [authed, token, loadAll])
@@ -195,6 +249,55 @@ export default function App() {
     setTickets([])
     setUsers([])
     setVisits(null)
+    setPartners([])
+  }
+
+  async function handleCreatePartner(e: FormEvent) {
+    e.preventDefault()
+    setPartnerSubmitting(true)
+    setPartnerActionMsg('')
+    try {
+      const res = await createAdminPartner(token, newPartnerForm)
+      setPartners((prev) => [res.partner, ...prev])
+      setShowAddPartnerModal(false)
+      setNewPartnerForm({
+        name: '',
+        phone: '',
+        password: '',
+        category: 'cakes',
+        storeName: '',
+        address: 'Anna Nagar, Chennai',
+        deliveryTime: '20-25 mins',
+        description: '',
+        email: '',
+      })
+      setPartnerActionMsg(`✅ Partner "${res.partner.name}" created successfully!`)
+      setTimeout(() => setPartnerActionMsg(''), 6000)
+    } catch (err: any) {
+      alert(err.message || 'Could not create partner.')
+    } finally {
+      setPartnerSubmitting(false)
+    }
+  }
+
+  async function handleTogglePartnerStatus(partnerId: string, currentStatus: string) {
+    const nextStatus = currentStatus === 'active' ? 'inactive' : 'active'
+    try {
+      await updateAdminPartner(token, partnerId, { status: nextStatus as any })
+      setPartners((prev) => prev.map((p) => (p.id === partnerId ? { ...p, status: nextStatus as any } : p)))
+    } catch (err: any) {
+      alert(err.message || 'Failed to update partner.')
+    }
+  }
+
+  async function handleDeletePartner(partnerId: string, partnerName: string) {
+    if (!confirm(`Are you sure you want to remove partner "${partnerName}"?`)) return
+    try {
+      await deleteAdminPartner(token, partnerId)
+      setPartners((prev) => prev.filter((p) => p.id !== partnerId))
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete partner.')
+    }
   }
 
   async function handleStatusChange(orderId: string, status: OrderStatus) {
@@ -243,17 +346,51 @@ export default function App() {
     }
   }
 
+  function handleOpenTracking(ord: AdminOrder) {
+    setTrackingOrder(ord)
+    setFollowUpNotesInput(ord.followUpNotes || '')
+    setRiderNameInput(ord.riderName || '')
+    setRiderPhoneInput(ord.riderPhone || '')
+  }
+
+  async function handleSaveFollowUp(nextStatus?: OrderStatus) {
+    if (!trackingOrder) return
+    setFollowUpSaving(true)
+    try {
+      const res = await updateOrderFollowUp(token, trackingOrder.id, {
+        status: nextStatus || trackingOrder.status,
+        followUpNotes: followUpNotesInput,
+        riderName: riderNameInput,
+        riderPhone: riderPhoneInput,
+        partnerStoreName: trackingOrder.partnerStoreName,
+      })
+      if (res.ok) {
+        setOrders((prev) => prev.map((o) => (o.id === trackingOrder.id ? res.order : o)))
+        setTrackingOrder(res.order)
+        setNotification(`✓ Follow-up updated for Order #${trackingOrder.id}!`)
+        setTimeout(() => setNotification(''), 4000)
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to update follow-up')
+    } finally {
+      setFollowUpSaving(false)
+    }
+  }
+
   // Filtered orders
   const filteredOrders = orders.filter((o) => {
     const matchesFilter = orderStatusFilter === 'all' || o.status === orderStatusFilter
+    const matchesStore = orderStoreFilter === 'all' || (o.partnerStoreName && o.partnerStoreName.toLowerCase().includes(orderStoreFilter.toLowerCase()))
     const term = orderSearch.trim().toLowerCase()
     const matchesSearch =
       !term ||
       o.id.toLowerCase().includes(term) ||
       o.name.toLowerCase().includes(term) ||
       o.phone.includes(term) ||
+      (o.partnerStoreName && o.partnerStoreName.toLowerCase().includes(term)) ||
+      (o.items && o.items.toLowerCase().includes(term)) ||
       (o.transactionId && o.transactionId.toLowerCase().includes(term))
-    return matchesFilter && matchesSearch
+    return matchesFilter && matchesStore && matchesSearch
   })
 
   // Filtered tickets
@@ -432,6 +569,26 @@ export default function App() {
                 Synced: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
+            <a
+              href="http://localhost:5173/partner"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                backgroundColor: '#ea580c',
+                color: '#ffffff',
+                padding: '0.45rem 0.95rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+              }}
+            >
+              🚀 Launch Partner Dashboard ↗
+            </a>
             <button className="btn btn-ghost" onClick={() => loadAll(token, true)} disabled={loading} style={{ padding: '0.45rem 0.9rem', fontSize: '0.88rem' }}>
               {loading ? 'Refreshing...' : '↻ Refresh Data'}
             </button>
@@ -440,6 +597,10 @@ export default function App() {
 
         {/* Key Metrics Overview Cards */}
         <div className="admin-metric-grid">
+          <div className="admin-metric-card">
+            <div className="admin-metric-num" style={{ color: '#ea580c' }}>{partners.length}</div>
+            <div className="admin-metric-title">Category Partners</div>
+          </div>
           <div className="admin-metric-card">
             <div className="admin-metric-num">{orders.length}</div>
             <div className="admin-metric-title">Total Orders</div>
@@ -473,10 +634,18 @@ export default function App() {
         {/* Tabs Switcher */}
         <div className="admin-tabs">
           <button
+            className={`admin-tab-btn ${activeTab === 'partners' ? 'active' : ''}`}
+            onClick={() => setActiveTab('partners')}
+          >
+            <span>👨‍💼 Partners &amp; Vendors</span>
+            <span className="admin-tab-count" style={{ background: '#ea580c', color: '#fff' }}>{partners.length}</span>
+          </button>
+
+          <button
             className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
-            <span>📦 Orders</span>
+            <span>📦 Orders (Oversight)</span>
             <span className="admin-tab-count">{orders.length}</span>
           </button>
 
@@ -525,32 +694,416 @@ export default function App() {
           </button>
         </div>
 
-        {/* TAB 1: ORDERS */}
+        {/* TAB 0: PARTNERS & VENDORS */}
+        {activeTab === 'partners' && (
+          <div>
+            {partnerActionMsg && (
+              <div style={{ backgroundColor: '#f0fdf4', border: '1.5px solid #86efac', color: '#166534', padding: '0.85rem 1.25rem', borderRadius: '12px', marginBottom: '1.25rem', fontWeight: 700 }}>
+                {partnerActionMsg}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.25rem', color: '#0f172a' }}>
+                  Category Partners &amp; Store Vendors
+                </h3>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '0.88rem' }}>
+                  Admin creates partners by category. Each partner receives, prepares, and dispatches orders for their assigned category in their own dashboard.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <a
+                  href="http://localhost:5173/partner"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: '#fff7ed',
+                    color: '#ea580c',
+                    border: '1.5px solid #fed7aa',
+                    padding: '0.55rem 1rem',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                  }}
+                >
+                  🏪 Test Partner Portal ↗
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddPartnerModal(true)}
+                  style={{
+                    backgroundColor: '#ea580c',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '0.55rem 1.15rem',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                  }}
+                >
+                  + Create New Partner
+                </button>
+              </div>
+            </div>
+
+            {/* Create Partner Modal Form */}
+            {showAddPartnerModal && (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '2px solid #ea580c', padding: '1.5rem', marginBottom: '1.75rem', boxShadow: '0 10px 25px rgba(234, 88, 12, 0.08)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                  <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>➕ Onboard New Category Partner</h4>
+                  <button onClick={() => setShowAddPartnerModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+                </div>
+
+                <form onSubmit={handleCreatePartner} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#0f172a' }}>
+                      🏪 Store / Restaurant / Bakery Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Nila Bakery (நிலா பேக்கரி) / Velvet Oven Bakes"
+                      value={newPartnerForm.storeName}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, storeName: e.target.value })}
+                      style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1.5px solid #ea580c', fontSize: '0.95rem', fontWeight: 600 }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      👤 Partner / Owner Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Karthik / Velan"
+                      value={newPartnerForm.name}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, name: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      🏷️ Business Category *
+                    </label>
+                    <select
+                      value={newPartnerForm.category}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, category: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', backgroundColor: '#fff' }}
+                    >
+                      {PARTNER_CATEGORIES.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.icon} {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      📞 Mobile Phone (Partner Login ID) *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="10-digit mobile number"
+                      value={newPartnerForm.phone}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, phone: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      🔒 Partner Password *
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Password for partner dashboard login"
+                      value={newPartnerForm.password}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, password: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      📍 Store Area &amp; Address *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Anna Nagar, Chennai"
+                      value={newPartnerForm.address}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, address: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      ⏱️ Estimated Delivery Time
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 20-25 mins"
+                      value={newPartnerForm.deliveryTime}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, deliveryTime: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
+                      📝 Store Tagline / Specialty Description
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Artisan molten brownies, custom celebration cakes &amp; pastries"
+                      value={newPartnerForm.description}
+                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, description: e.target.value })}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddPartnerModal(false)}
+                      style={{ padding: '0.55rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={partnerSubmitting}
+                      style={{ padding: '0.55rem 1.25rem', borderRadius: '8px', backgroundColor: '#ea580c', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      {partnerSubmitting ? 'Onboarding Store…' : 'Save & Onboard Store'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Partners Table */}
+            {partners.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#fff', borderRadius: '12px', border: '1px solid var(--line)' }}>
+                <p style={{ margin: 0, color: '#64748b' }}>No partners onboarded yet. Click "+ Create New Partner" above.</p>
+              </div>
+            ) : (
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Partner Name &amp; Store</th>
+                      <th>Login Phone</th>
+                      <th>Assigned Category</th>
+                      <th>Location</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partners.map((p) => {
+                      const catInfo = PARTNER_CATEGORIES.find((c) => c.id === p.category) || { label: p.category, icon: '📦' }
+                      const isActive = p.status === 'active'
+
+                      return (
+                        <tr key={p.id}>
+                          <td>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>🏪 {p.storeName || p.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>👤 Owner: {p.name}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ID: {p.id} • ⭐ {p.rating || 4.8} • ⏱️ {p.deliveryTime || '20-25 mins'}</div>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 600 }}>📞 {p.phone}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#16a34a' }}>Password: partner123</div>
+                          </td>
+                          <td>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '999px',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              backgroundColor: '#fff7ed',
+                              color: '#c2410c',
+                              border: '1px solid #fed7aa',
+                            }}>
+                              <span>{catInfo.icon}</span>
+                              <span>{catInfo.label}</span>
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: '0.85rem', color: '#475569' }}>{p.address || 'Chennai Central'}</div>
+                          </td>
+                          <td>
+                            <span style={{
+                              padding: '0.2rem 0.6rem',
+                              borderRadius: '999px',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              backgroundColor: isActive ? '#dcfce7' : '#fee2e2',
+                              color: isActive ? '#15803d' : '#b91c1c',
+                            }}>
+                              {p.status}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                              <button
+                                onClick={() => handleTogglePartnerStatus(p.id, p.status)}
+                                style={{
+                                  padding: '0.3rem 0.65rem',
+                                  borderRadius: '6px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  border: '1px solid #cbd5e1',
+                                  backgroundColor: '#fff',
+                                }}
+                              >
+                                {isActive ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <button
+                                onClick={() => handleDeletePartner(p.id, p.name)}
+                                style={{
+                                  padding: '0.3rem 0.55rem',
+                                  borderRadius: '6px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  border: '1px solid #fecaca',
+                                  backgroundColor: '#fff1f2',
+                                  color: '#b91c1c',
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 1: ORDERS (OVERSIGHT) */}
         {activeTab === 'orders' && (
           <div>
-            <div className="admin-filter-bar">
-              <div className="admin-filter-group">
-                {['all', 'received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'].map((s) => (
+            {/* Partner Notice Banner */}
+            <div style={{
+              backgroundColor: '#fff7ed',
+              border: '1.5px solid #fed7aa',
+              borderRadius: '14px',
+              padding: '1rem 1.25rem',
+              marginBottom: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+            }}>
+              <div>
+                <div style={{ fontWeight: 800, color: '#9a3412', fontSize: '0.95rem' }}>
+                  ℹ️ Order Receiving &amp; Fulfillment Module is managed by Partners!
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#c2410c', marginTop: '0.2rem' }}>
+                  Category Partners receive customer orders directly and manage preparation, packing, and dispatch from their dedicated Partner Dashboard.
+                </div>
+              </div>
+              <a
+                href="http://localhost:5175"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  backgroundColor: '#ea580c',
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.2)',
+                }}
+              >
+                Open Dedicated Partner Dashboard (5175) ↗
+              </a>
+            </div>
+
+            <div className="admin-filter-bar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div className="admin-filter-group">
+                  {['all', 'received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'].map((s) => (
+                    <button
+                      key={s}
+                      className={`admin-filter-chip ${orderStatusFilter === s ? 'active' : ''}`}
+                      onClick={() => setOrderStatusFilter(s)}
+                    >
+                      {s === 'all' ? 'All Orders' : STATUS_LABELS[s] || s}
+                      {s === 'all'
+                        ? ` (${orders.length})`
+                        : ` (${orders.filter((o) => o.status === s).length})`}
+                    </button>
+                  ))}
+                </div>
+
+                <input
+                  type="text"
+                  className="admin-search-input"
+                  placeholder="Search by ID, customer, phone, store, txn..."
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  style={{ minWidth: '240px' }}
+                />
+              </div>
+
+              {/* Partner Store Quick Filter Pills */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', marginRight: '4px' }}>
+                  🏪 Outlet Filter:
+                </span>
+                {['all', 'Nila Bakery', 'City Mart Essentials', 'Green Farm Depot', 'Bisleri Pure Springs'].map((st) => (
                   <button
-                    key={s}
-                    className={`admin-filter-chip ${orderStatusFilter === s ? 'active' : ''}`}
-                    onClick={() => setOrderStatusFilter(s)}
+                    key={st}
+                    type="button"
+                    onClick={() => setOrderStoreFilter(st)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      border: '1px solid',
+                      borderColor: orderStoreFilter === st ? '#059669' : '#cbd5e1',
+                      background: orderStoreFilter === st ? '#059669' : '#ffffff',
+                      color: orderStoreFilter === st ? '#ffffff' : '#334155',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
                   >
-                    {s === 'all' ? 'All Orders' : STATUS_LABELS[s] || s}
-                    {s === 'all'
-                      ? ` (${orders.length})`
-                      : ` (${orders.filter((o) => o.status === s).length})`}
+                    {st === 'all' ? 'All Stores' : st === 'Nila Bakery' ? '🎂 Nila Bakery (Velan)' : st === 'City Mart Essentials' ? '🛒 City Mart' : st === 'Green Farm Depot' ? '🥗 Green Farm' : '💧 Bisleri Water'}
                   </button>
                 ))}
               </div>
-
-              <input
-                type="text"
-                className="admin-search-input"
-                placeholder="Search by ID, customer, phone, txn..."
-                value={orderSearch}
-                onChange={(e) => setOrderSearch(e.target.value)}
-              />
             </div>
 
             {filteredOrders.length === 0 ? (
@@ -565,9 +1118,11 @@ export default function App() {
                       <th>Order ID</th>
                       <th>Customer Details</th>
                       <th>Items Ordered</th>
+                      <th>Fulfilling Store (Partner)</th>
                       <th>Slot &amp; Address</th>
-                      <th>Payment &amp; Refund</th>
-                      <th>Status (Live push)</th>
+                      <th>Payment &amp; Value</th>
+                      <th>Status (Live)</th>
+                      <th style={{ textAlign: 'center' }}>Live Tracking &amp; Follow-up</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -583,7 +1138,7 @@ export default function App() {
                           {order.email && <div className="admin-subtext">{order.email}</div>}
                         </td>
                         <td>
-                          <div style={{ maxWidth: 260, whiteSpace: 'normal', fontSize: '0.88rem' }}>
+                          <div style={{ maxWidth: 220, whiteSpace: 'normal', fontSize: '0.88rem' }}>
                             {order.items}
                           </div>
                           {order.notes && (
@@ -598,8 +1153,18 @@ export default function App() {
                           )}
                         </td>
                         <td>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '3px 8px', borderRadius: '6px' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#047857' }}>
+                              🏪 {order.partnerStoreName || 'Nila Bakery'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '3px' }}>
+                            👤 {order.partnerName || 'Velan'} • 📞 {order.partnerPhone || '9750740587'}
+                          </div>
+                        </td>
+                        <td>
                           <div style={{ fontWeight: 600 }}>{order.deliverySlot}</div>
-                          <div className="admin-subtext" style={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                          <div className="admin-subtext" style={{ maxWidth: 180, whiteSpace: 'normal' }}>
                             {order.address}
                           </div>
                         </td>
@@ -719,6 +1284,39 @@ export default function App() {
                               </option>
                             ))}
                           </select>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenTracking(order)}
+                            style={{
+                              background: 'linear-gradient(135deg, #047857 0%, #059669 100%)',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '6px 12px',
+                              fontWeight: 700,
+                              fontSize: '0.78rem',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                              transition: 'transform 0.15s',
+                            }}
+                          >
+                            🔍 Track &amp; Follow Up
+                          </button>
+                          {order.riderName && (
+                            <div style={{ fontSize: '0.72rem', color: '#0369a1', marginTop: '4px', fontWeight: 600 }}>
+                              🛵 Rider: {order.riderName}
+                            </div>
+                          )}
+                          {order.followUpNotes && (
+                            <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: '2px', fontStyle: 'italic', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={order.followUpNotes}>
+                              💬 "{order.followUpNotes}"
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -1067,6 +1665,331 @@ export default function App() {
                     ))}
                   </ul>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* MODAL: ORDER LIVE TRACKING & FOLLOW-UP                        */}
+        {/* ============================================================== */}
+        {trackingOrder && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(3px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: '1rem',
+            }}
+            onClick={() => setTrackingOrder(null)}
+          >
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '16px',
+                maxWidth: '740px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                border: '1px solid #e2e8f0',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      📦 Live Order Tracking &amp; Follow-up
+                    </span>
+                    <span style={{ background: '#059669', color: '#ffffff', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 800 }}>
+                      #{trackingOrder.id}
+                    </span>
+                  </div>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                    Placed at {new Date(trackingOrder.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })} • Value: ₹{trackingOrder.amount || 0} ({trackingOrder.paymentMethod === 'online' ? 'Paid Online' : 'Cash on Delivery'})
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTrackingOrder(null)}
+                  style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#64748b' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div style={{ padding: '1.5rem' }}>
+                {/* PARTNER STORE BANNER WITH ONE-CLICK CALL */}
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>
+                      🏪 Assigned Merchant Partner Store
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>
+                      {trackingOrder.partnerStoreName || 'Nila Bakery'}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#047857', marginTop: '2px' }}>
+                      Owner: <b>{trackingOrder.partnerName || 'Velan'}</b> • Contact: <b>{trackingOrder.partnerPhone || '9750740587'}</b>
+                    </div>
+                  </div>
+                  <a
+                    href={`tel:${trackingOrder.partnerPhone || '9750740587'}`}
+                    style={{
+                      background: '#059669',
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                    }}
+                  >
+                    📞 Call Partner Store
+                  </a>
+                </div>
+
+                {/* SWIGGY STYLE 5-STEP VISUAL TIMELINE */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+                    📍 Live Stepper Timeline
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px' }}>
+                    {[
+                      { key: 'received', step: '1', title: 'Order Placed', icon: '🛒' },
+                      { key: 'confirmed', step: '2', title: 'Store Accepted', icon: '🏪' },
+                      { key: 'preparing', step: '3', title: 'Preparing', icon: '🧑‍🍳' },
+                      { key: 'out_for_delivery', step: '4', title: 'Dispatched', icon: '🛵' },
+                      { key: 'delivered', step: '5', title: 'Delivered', icon: '🎉' },
+                    ].map((st, i) => {
+                      const stepIdx = ['received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'].indexOf(trackingOrder.status)
+                      const isCompleted = stepIdx >= i
+                      const isCurrent = trackingOrder.status === st.key
+                      return (
+                        <div
+                          key={st.key}
+                          style={{
+                            background: isCurrent ? '#059669' : isCompleted ? '#ecfdf5' : '#f8fafc',
+                            border: '1.5px solid',
+                            borderColor: isCurrent ? '#059669' : isCompleted ? '#a7f3d0' : '#e2e8f0',
+                            borderRadius: '10px',
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: isCurrent ? '#ffffff' : isCompleted ? '#065f46' : '#64748b',
+                          }}
+                        >
+                          <div style={{ fontSize: '1.2rem', marginBottom: '2px' }}>{st.icon}</div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 800 }}>{st.title}</div>
+                          <div style={{ fontSize: '0.68rem', marginTop: '2px', opacity: 0.9 }}>
+                            {isCurrent ? '● IN PROGRESS' : isCompleted ? '✓ Done' : 'Pending'}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* QUICK PIPELINE ADVANCE BUTTONS */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>
+                    ⚡ Instant Status Follow-up Actions:
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {['confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'].map((stKey) => (
+                      <button
+                        key={stKey}
+                        type="button"
+                        disabled={followUpSaving || trackingOrder.status === stKey}
+                        onClick={() => handleSaveFollowUp(stKey as OrderStatus)}
+                        style={{
+                          padding: '7px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid',
+                          borderColor: trackingOrder.status === stKey ? '#059669' : '#cbd5e1',
+                          background: trackingOrder.status === stKey ? '#059669' : '#ffffff',
+                          color: trackingOrder.status === stKey ? '#ffffff' : '#1e293b',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          cursor: trackingOrder.status === stKey ? 'default' : 'pointer',
+                        }}
+                      >
+                        {stKey === 'confirmed' ? '✓ Accept / Confirm' : stKey === 'preparing' ? '🧑‍🍳 Mark Preparing' : stKey === 'out_for_delivery' ? '🛵 Mark Dispatched' : stKey === 'delivered' ? '🎉 Mark Delivered' : '✕ Cancel'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CUSTOMER & RIDER CARDS */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                  {/* Customer Info */}
+                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+                      Customer Details
+                    </div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700, marginTop: '4px', color: '#0f172a' }}>
+                      {trackingOrder.name}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '2px' }}>
+                      📞 {trackingOrder.phone}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '4px' }}>
+                      📍 <b>Address:</b> {trackingOrder.address}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                      ⏱ <b>Slot:</b> {trackingOrder.deliverySlot}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                      <a
+                        href={`tel:${trackingOrder.phone}`}
+                        style={{
+                          background: '#0284c7',
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        📞 Call Customer
+                      </a>
+                      <a
+                        href={`https://wa.me/91${trackingOrder.phone.replace(/[^0-9]/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          background: '#16a34a',
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        💬 WhatsApp
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Rider Assignment */}
+                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+                      Delivery Rider Assignment
+                    </div>
+                    <div style={{ marginTop: '8px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>
+                        Rider Name
+                      </label>
+                      <input
+                        type="text"
+                        value={riderNameInput}
+                        onChange={(e) => setRiderNameInput(e.target.value)}
+                        placeholder="e.g. Karthik (Zippo Rider)"
+                        style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div style={{ marginTop: '8px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>
+                        Rider Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={riderPhoneInput}
+                        onChange={(e) => setRiderPhoneInput(e.target.value)}
+                        placeholder="e.g. 9840123456"
+                        style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    {riderPhoneInput && (
+                      <a
+                        href={`tel:${riderPhoneInput}`}
+                        style={{
+                          marginTop: '8px',
+                          background: '#0284c7',
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          display: 'inline-block',
+                        }}
+                      >
+                        📞 Call Rider ({riderNameInput || 'Assigned'})
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ordered Items List */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    Items in this Order
+                  </div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
+                    {trackingOrder.items}
+                  </div>
+                  {trackingOrder.notes && (
+                    <div style={{ fontSize: '0.8rem', color: '#c2410c', marginTop: '4px', fontStyle: 'italic' }}>
+                      Customer Note: "{trackingOrder.notes}"
+                    </div>
+                  )}
+                </div>
+
+                {/* ADMIN FOLLOW-UP NOTES LOG */}
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    📝 Admin Follow-up Activity Log &amp; Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={followUpNotesInput}
+                    onChange={(e) => setFollowUpNotesInput(e.target.value)}
+                    placeholder="e.g. Called Velan at Nila Bakery - brownie & cake ready for pickup. Rider dispatched..."
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', fontFamily: 'inherit' }}
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setTrackingOrder(null)}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.88rem', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  disabled={followUpSaving}
+                  onClick={() => handleSaveFollowUp()}
+                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#059669', color: '#ffffff', fontSize: '0.88rem', cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {followUpSaving ? 'Saving...' : '💾 Save Follow-up Updates'}
+                </button>
               </div>
             </div>
           </div>

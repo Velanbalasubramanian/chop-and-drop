@@ -16,14 +16,16 @@ function initSocket(server) {
     // Customer tracking: join a specific order room to receive real-time updates
     socket.on('join_order', (orderId) => {
       if (orderId && typeof orderId === 'string') {
-        const room = `order:${orderId.trim().toUpperCase()}`
+        const clean = orderId.replace(/^#/, '').trim().toUpperCase()
+        const room = `order:${clean}`
         socket.join(room)
       }
     })
 
     socket.on('leave_order', (orderId) => {
       if (orderId && typeof orderId === 'string') {
-        const room = `order:${orderId.trim().toUpperCase()}`
+        const clean = orderId.replace(/^#/, '').trim().toUpperCase()
+        const room = `order:${clean}`
         socket.leave(room)
       }
     })
@@ -57,6 +59,20 @@ function initSocket(server) {
       }
     })
 
+    // Partner room: join if authenticated with Partner JWT
+    socket.on('join_partner', (data) => {
+      const token = typeof data === 'string' ? data : data?.token
+      if (!token) return
+      const payload = verifyToken(token)
+      if (payload && (payload.role === 'partner' || payload.role === 'admin')) {
+        socket.join('partners_room')
+        if (payload.category) {
+          socket.join(`partner_cat:${payload.category}`)
+        }
+        socket.emit('partner_joined', { ok: true, category: payload.category })
+      }
+    })
+
     socket.on('disconnect', () => {
       // Clean disconnect
     })
@@ -73,25 +89,34 @@ function emitNewOrder(order) {
   if (!io) return
   // Broadcast to all authenticated admin sockets
   io.to('admin_room').emit('new_order', order)
+  // Broadcast to partner rooms
+  io.to('partners_room').emit('new_order', order)
 }
 
 function emitOrderStatusUpdate(orderId, status) {
   if (!io) return
-  const normalizedId = String(orderId).trim().toUpperCase()
+  const normalizedId = String(orderId).replace(/^#/, '').trim().toUpperCase()
   const payload = { orderId: normalizedId, status }
 
-  // Send to customers listening to this specific order
+  // Send to customers listening to this specific order room
   io.to(`order:${normalizedId}`).emit('order_status_updated', payload)
+
+  // Broadcast globally so any customer tracking screen updates instantly
+  io.emit('order_status_updated', payload)
 
   // Also send to all admins on dashboard
   io.to('admin_room').emit('order_status_updated', payload)
+
+  // Send to partner rooms
+  io.to('partners_room').emit('order_status_updated', payload)
 }
 
 function emitOrderRefundUpdate(order) {
   if (!io || !order) return
-  const normalizedId = String(order.id).trim().toUpperCase()
+  const normalizedId = String(order.id).replace(/^#/, '').trim().toUpperCase()
   // Broadcast to customer listening to this order
   io.to(`order:${normalizedId}`).emit('order_refund_updated', order)
+  io.emit('order_refund_updated', order)
   // Broadcast to admin dashboard
   io.to('admin_room').emit('order_refund_updated', order)
 }
@@ -108,6 +133,43 @@ function emitNewTicket(ticket) {
   io.to('admin_room').emit('new_ticket', ticket)
 }
 
+function emitStockUpdate(products) {
+  if (!io || !products) return
+  // Broadcast live stock updates to all connected clients (customers, admin, partners)
+  io.emit('stock_updated', products)
+}
+
+function emitProductCreated(product) {
+  if (!io || !product) return
+  io.emit('product_created', product)
+  io.emit('stock_updated', [product])
+}
+
+function emitProductDeleted(productId) {
+  if (!io || !productId) return
+  io.emit('product_deleted', { productId })
+}
+
+function emitPartnerCreated(partner) {
+  if (!io || !partner) return
+  io.emit('partner_created', partner)
+}
+
+function emitPartnerUpdated(partner) {
+  if (!io || !partner) return
+  io.emit('partner_updated', partner)
+}
+
+function emitPartnerDeleted(partnerId) {
+  if (!io || !partnerId) return
+  io.emit('partner_deleted', { partnerId })
+}
+
+function emitPartnersListUpdated(partners) {
+  if (!io || !partners) return
+  io.emit('partners_updated', partners)
+}
+
 module.exports = {
   initSocket,
   getIO,
@@ -116,4 +178,11 @@ module.exports = {
   emitOrderRefundUpdate,
   emitNewVisit,
   emitNewTicket,
+  emitStockUpdate,
+  emitProductCreated,
+  emitProductDeleted,
+  emitPartnerCreated,
+  emitPartnerUpdated,
+  emitPartnerDeleted,
+  emitPartnersListUpdated,
 }

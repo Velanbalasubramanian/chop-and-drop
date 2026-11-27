@@ -27,29 +27,49 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   async function handleRegister() {
+    setError(null)
+    setIsAlreadyRegistered(false)
+    setSuccessMessage(null)
     if (!name.trim()) {
-      Alert.alert('Required', 'Please enter your full name.')
+      setError('Please enter your full name.')
       return
     }
     if (!phone.trim() || phone.trim().length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter a 10-digit mobile number.')
+      setError('Please enter a 10-digit mobile number.')
       return
     }
     if (!password || password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters long.')
+      setError('Password must be at least 6 characters long.')
       return
     }
 
     setLoading(true)
     try {
       await register(name.trim(), phone.trim(), password, email.trim() || undefined)
-      Alert.alert('Account Created! 🎉', 'Welcome to Zippo.', [
-        { text: 'Start Ordering', onPress: () => navigation.navigate('HomeTab') },
-      ])
+      setSuccessMessage(`Account Created Successfully! 🎉 Welcome to Zippo, ${name.trim()}!`)
+      setTimeout(() => {
+        try {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          })
+        } catch {
+          navigation.navigate('MainTabs', { screen: 'HomeTab' })
+        }
+      }, 1500)
     } catch (err: any) {
-      Alert.alert('Registration Failed', err.message || 'Could not register this account.')
+      const msg = err.message || 'Could not register this account.'
+      if (err.alreadyRegistered || /already (exists|registered)/i.test(msg)) {
+        setIsAlreadyRegistered(true)
+        setError('This phone number already has an account.')
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -73,6 +93,47 @@ export default function RegisterScreen() {
             <Text style={styles.sub}>
               Groceries, fresh cuts, bakery, water cans & more delivered fast to your home.
             </Text>
+
+            {successMessage && (
+              <View style={styles.successBox}>
+                <Ionicons name="checkmark-circle" size={26} color="#059669" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.successTitle}>Registration Successful! 🎉</Text>
+                  <Text style={styles.successText}>{successMessage}</Text>
+                  <Text style={styles.successSub}>Taking you to the store now...</Text>
+                </View>
+              </View>
+            )}
+
+            {isAlreadyRegistered && (
+              <View style={styles.alreadyBox}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons name="alert-circle" size={22} color="#b45309" />
+                  <Text style={styles.alreadyTitle}>Account Already Created ⚠️</Text>
+                </View>
+                <Text style={styles.alreadyText}>
+                  An account with mobile number <Text style={{ fontWeight: '800' }}>{phone}</Text> already exists in Zippo.
+                </Text>
+                <TouchableOpacity
+                  style={styles.alreadyLoginBtn}
+                  activeOpacity={0.85}
+                  onPress={() => navigation.navigate('Login', { phone: phone.trim() })}
+                >
+                  <Ionicons name="log-in-outline" size={16} color="#ffffff" />
+                  <Text style={styles.alreadyLoginBtnText}>Sign In with Password Now →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {error && !isAlreadyRegistered && (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={18} color="#dc2626" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.errorTitle}>Registration Error ⚠️</Text>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              </View>
+            )}
 
             {/* Name */}
             <View style={styles.inputGroup}>
@@ -137,13 +198,31 @@ export default function RegisterScreen() {
 
             {/* Register Button */}
             <TouchableOpacity
-              style={styles.registerBtn}
-              onPress={handleRegister}
+              style={[
+                styles.registerBtn,
+                successMessage ? { backgroundColor: '#059669' } : undefined,
+              ]}
+              onPress={() => {
+                if (successMessage) {
+                  try {
+                    navigation.navigate('MainTabs', { screen: 'HomeTab' })
+                  } catch {
+                    navigation.navigate('HomeTab')
+                  }
+                  return
+                }
+                handleRegister()
+              }}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
+              ) : successMessage ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Ionicons name="checkmark-circle" size={18} color="#ffffff" />
+                  <Text style={styles.registerBtnText}>Success! Entering Store →</Text>
+                </View>
               ) : (
                 <Text style={styles.registerBtnText}>Create Account</Text>
               )}
@@ -266,5 +345,95 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: THEME.colors.primary,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1.5,
+    borderColor: '#fca5a5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginVertical: 10,
+    gap: 8,
+  },
+  errorTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#991b1b',
+    marginBottom: 2,
+  },
+  errorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#dc2626',
+    lineHeight: 17,
+  },
+  alreadyBox: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 1.5,
+    borderColor: '#fcd34d',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginVertical: 12,
+    gap: 6,
+  },
+  alreadyTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#92400e',
+  },
+  alreadyText: {
+    fontSize: 13,
+    color: '#78350f',
+    lineHeight: 18,
+  },
+  alreadyLoginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#d97706',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 7,
+    marginTop: 6,
+    gap: 6,
+  },
+  alreadyLoginBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  successBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1.5,
+    borderColor: '#6ee7b7',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginVertical: 12,
+    gap: 10,
+  },
+  successTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#065f46',
+    marginBottom: 2,
+  },
+  successText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#047857',
+    lineHeight: 18,
+  },
+  successSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#059669',
+    marginTop: 4,
   },
 })

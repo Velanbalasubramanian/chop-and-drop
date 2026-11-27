@@ -11,15 +11,20 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
     try {
       await register(name.trim(), phone.trim(), password, email.trim() || undefined)
-      navigate('/my-orders')
+      setSuccess(`Account Created Successfully! 🎉 Welcome to Zippo, ${name.trim()}! Taking you to your orders...`)
+      setTimeout(() => {
+        navigate('/my-orders')
+      }, 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create your account.')
     } finally {
@@ -65,9 +70,14 @@ export default function Register() {
             placeholder="At least 6 characters"
           />
         </label>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Creating account…' : 'Create account'}
+        <button type="submit" className="btn btn-primary" disabled={loading || !!success} style={success ? { backgroundColor: '#059669', borderColor: '#059669' } : undefined}>
+          {loading ? 'Creating account…' : success ? '✓ Success! Taking you in...' : 'Create account'}
         </button>
+        {success && (
+          <div style={{ backgroundColor: '#ecfdf5', border: '1.5px solid #6ee7b7', borderRadius: '8px', padding: '12px 16px', color: '#065f46', marginTop: '12px', fontWeight: 'bold' }}>
+            {success}
+          </div>
+        )}
         {error && <p className="form-status form-status-error">{error}</p>}
       </form>
 

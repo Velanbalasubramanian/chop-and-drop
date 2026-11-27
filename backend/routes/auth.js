@@ -6,7 +6,7 @@ const { generateOtp, verifyOtp } = require('../lib/otp')
 const { sendOtpSms } = require('../lib/sms')
 const { requireAuth } = require('../middleware/requireAuth')
 const { authLimiter } = require('../middleware/rateLimiters')
-const { getUserByPhone, createUser } = require('../lib/db')
+const { getUserByPhone, createUser, updateUser } = require('../lib/db')
 
 const router = express.Router()
 
@@ -28,7 +28,23 @@ router.post('/register', authLimiter, async (req, res) => {
 
   const existing = await getUserByPhone(cleanPhone)
   if (existing) {
-    return res.status(409).json({ error: 'An account with this phone number already exists.' })
+    if (existing.passwordHash) {
+      return res.status(409).json({
+        error: 'An account with this phone number already exists. Please sign in.',
+        alreadyRegistered: true,
+      })
+    }
+    // If account was created by OTP without password, update name and save chosen password
+    const passwordHash = await hashPassword(cleanPassword)
+    const updatedUser = await updateUser(existing.id, {
+      name: cleanName || existing.name,
+      email: cleanEmail || existing.email,
+      passwordHash,
+    })
+
+    const token = signCustomerToken(updatedUser)
+    const { passwordHash: _passwordHash, ...safeUser } = updatedUser
+    return res.status(200).json({ token, user: safeUser, message: 'Account updated and logged in successfully.' })
   }
 
   const passwordHash = await hashPassword(cleanPassword)

@@ -19,11 +19,13 @@ import { trackOrder, requestOrderRefund } from '../api'
 import { getSocket } from '../socket'
 import type { OrderStatus, TrackedOrder } from '../types'
 
+const cleanOrderId = (id: string) => String(id || '').replace(/^#/, '').trim().toUpperCase()
+
 export default function TrackOrderScreen() {
   const route = useRoute<any>()
   const { user, token } = useAuth()
 
-  const initialOrderId = route.params?.orderId || ''
+  const initialOrderId = cleanOrderId(route.params?.orderId || '')
   const initialPhone = route.params?.phone || user?.phone || ''
 
   const [orderId, setOrderId] = useState(initialOrderId)
@@ -34,8 +36,9 @@ export default function TrackOrderScreen() {
   const [liveBanner, setLiveBanner] = useState('')
 
   async function handleSearch(targetOrderId = orderId, targetPhone = phone) {
-    if (!targetOrderId.trim()) {
-      Alert.alert('Required', 'Please enter your Order ID (e.g. CD-8K3F2A)')
+    const cleanTargetId = cleanOrderId(targetOrderId)
+    if (!cleanTargetId) {
+      Alert.alert('Required', 'Please enter your Order ID (e.g. ZP-F28204)')
       return
     }
 
@@ -44,7 +47,7 @@ export default function TrackOrderScreen() {
     setLiveBanner('')
 
     try {
-      const data = await trackOrder(targetOrderId.trim(), targetPhone.trim())
+      const data = await trackOrder(cleanTargetId, targetPhone.trim())
       setOrder(data)
     } catch (err: any) {
       setError(err.message || 'Could not find that order. Verify the Order ID.')
@@ -66,39 +69,91 @@ export default function TrackOrderScreen() {
     if (!order?.id) return
 
     const socket = getSocket()
-    const activeOrderId = order.id
+    const activeOrderId = cleanOrderId(order.id)
 
+    // Join room for this specific order
     socket.emit('join_order', activeOrderId)
 
     function handleStatusUpdate(data: { orderId: string; status: OrderStatus }) {
-      if (data.orderId === activeOrderId) {
+      if (cleanOrderId(data.orderId) === activeOrderId) {
         setOrder((prev) => (prev ? { ...prev, status: data.status } : null))
-        setLiveBanner(`🟢 Live Status Update: "${data.status.replace(/_/g, ' ').toUpperCase()}"`)
-        setTimeout(() => setLiveBanner(''), 7000)
+        const statusLabel = data.status.replace(/_/g, ' ').toUpperCase()
+        setLiveBanner(`🟢 Real-Time Update: Order is now "${statusLabel}"!`)
+        setTimeout(() => setLiveBanner(''), 8000)
       }
     }
 
     function handleRefundUpdate(data: TrackedOrder) {
-      if (data.id === activeOrderId) {
+      if (cleanOrderId(data.id) === activeOrderId) {
         setOrder((prev) => (prev ? { ...prev, ...data } : null))
         setLiveBanner(
           data.paymentStatus === 'refunded'
             ? `💸 Refund Approved! Ref: ${data.refundId || ''}`
             : '⏳ Refund update: Request is in review.'
         )
-        setTimeout(() => setLiveBanner(''), 7000)
+        setTimeout(() => setLiveBanner(''), 8000)
       }
     }
 
+    function onSocketConnect() {
+      socket.emit('join_order', activeOrderId)
+      // Auto re-fetch latest data on reconnection
+      trackOrder(activeOrderId, phone || order?.phone || '').then(setOrder).catch(() => {})
+    }
+
+    socket.on('connect', onSocketConnect)
     socket.on('order_status_updated', handleStatusUpdate)
     socket.on('order_refund_updated', handleRefundUpdate)
 
     return () => {
       socket.emit('leave_order', activeOrderId)
+      socket.off('connect', onSocketConnect)
       socket.off('order_status_updated', handleStatusUpdate)
       socket.off('order_refund_updated', handleRefundUpdate)
     }
   }, [order?.id])
+
+  // Periodic background auto-refresh fallback (every 3 seconds) until order is delivered
+  useEffect(() => {
+    if (!order?.id || order.status === 'delivered' || order.status === 'cancelled') return
+
+    const activeId = cleanOrderId(order.id)
+    const targetPhone = phone || order?.phone || ''
+
+    const interval = setInterval(async () => {
+      try {
+        const fresh = await trackOrder(activeId, targetPhone)
+        if (fresh && fresh.status) {
+          setOrder((prev) => {
+            if (!prev) return fresh
+            if (prev.status !== fresh.status) {
+              const statusLabel = fresh.status.replace(/_/g, ' ').toUpperCase()
+              setLiveBanner(`🟢 Real-Time Update: Order is now "${statusLabel}"!`)
+              setTimeout(() => setLiveBanner(''), 8000)
+            }
+            return { ...prev, ...fresh }
+          })
+        }
+      } catch {}
+    }, 3000)
+
+    // Also auto-refresh when user switches back to this browser tab
+    const onVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        trackOrder(activeId, targetPhone).then(setOrder).catch(() => {})
+      }
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibilityChange)
+    }
+
+    return () => {
+      clearInterval(interval)
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+      }
+    }
+  }, [order?.id, order?.status, phone])
 
   async function handleCancelRequest() {
     if (!order) return
@@ -223,11 +278,27 @@ export default function TrackOrderScreen() {
                 <Text style={styles.orderIdLabel}>Order Reference</Text>
                 <Text style={styles.orderIdValue}>#{order.id}</Text>
               </View>
-              <View style={styles.statusBadge}>
-                <Text style={styles.statusBadgeText}>
-                  {order.status.replace(/_/g, ' ').toUpperCase()}
+              <View
+                style={[
+                  styles.statusBadge,
+                  order.status === 'delivered' && styles.statusBadgeDelivered,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.statusBadgeText,
+                    order.status === 'delivered' && styles.statusBadgeDeliveredText,
+                  ]}
+                >
+                  {order.status === 'delivered' ? 'DELIVERED ✓' : order.status.replace(/_/g, ' ').toUpperCase()}
                 </Text>
               </View>
+            </View>
+
+            {/* Live Sync Indicator */}
+            <View style={styles.liveSyncBadge}>
+              <View style={styles.pulseDot} />
+              <Text style={styles.liveSyncText}>Live Real-Time Sync Active</Text>
             </View>
 
             {/* Visual Stepper */}
@@ -379,9 +450,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: 14,
+    paddingBottom: 10,
+  },
+  liveSyncBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 8,
+    gap: 6,
+  },
+  pulseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#10b981',
+  },
+  liveSyncText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#047857',
   },
   orderIdLabel: {
     fontSize: 11,
@@ -403,10 +496,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fed7aa',
   },
+  statusBadgeDelivered: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#6ee7b7',
+  },
   statusBadgeText: {
     fontSize: 11,
     fontWeight: '800',
     color: THEME.colors.primary,
+  },
+  statusBadgeDeliveredText: {
+    color: '#047857',
   },
   stepperContainer: {
     paddingVertical: 16,

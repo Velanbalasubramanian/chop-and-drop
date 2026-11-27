@@ -60,13 +60,15 @@ export default function OrderStatusStep({ currentStatus }: OrderStatusStepProps)
     )
   }
 
+  const isOrderDelivered = currentStatus === 'delivered'
   const currentIndex = ORDERED_STEPS.indexOf(currentStatus)
 
   return (
     <View style={styles.container}>
       {ORDERED_STEPS.map((step, index) => {
-        const isDone = currentIndex > index
-        const isCurrent = currentIndex === index
+        const isDeliveredStep = step === 'delivered'
+        const isDone = currentIndex > index || (isOrderDelivered && isDeliveredStep)
+        const isCurrent = currentIndex === index && !isOrderDelivered
         const isPending = currentIndex < index
         const info = STEP_LABELS[step]
         const isLast = index === ORDERED_STEPS.length - 1
@@ -110,6 +112,7 @@ export default function OrderStatusStep({ currentStatus }: OrderStatusStepProps)
                 <Text
                   style={[
                     styles.title,
+                    isDone && isDeliveredStep && styles.titleDelivered,
                     isCurrent && styles.titleCurrent,
                     isPending && styles.titlePending,
                   ]}
@@ -119,6 +122,12 @@ export default function OrderStatusStep({ currentStatus }: OrderStatusStepProps)
                 {isCurrent && (
                   <View style={styles.liveTag}>
                     <Text style={styles.liveTagText}>IN PROGRESS</Text>
+                  </View>
+                )}
+                {isOrderDelivered && isDeliveredStep && (
+                  <View style={styles.deliveredTag}>
+                    <Ionicons name="checkmark-done" size={12} color="#047857" />
+                    <Text style={styles.deliveredTagText}>COMPLETED</Text>
                   </View>
                 )}
               </View>
@@ -202,6 +211,10 @@ const styles = StyleSheet.create({
     color: THEME.colors.primary,
     fontWeight: '800',
   },
+  titleDelivered: {
+    color: '#065f46',
+    fontWeight: '800',
+  },
   titlePending: {
     color: THEME.colors.textMuted,
     fontWeight: '500',
@@ -214,6 +227,22 @@ const styles = StyleSheet.create({
   },
   liveTagText: {
     color: THEME.colors.badgeText,
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  deliveredTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 3,
+  },
+  deliveredTagText: {
+    color: '#047857',
     fontSize: 9,
     fontWeight: '800',
   },

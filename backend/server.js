@@ -17,6 +17,8 @@ const adminRouter = require('./routes/admin')
 const visitsRouter = require('./routes/visits')
 const authRouter = require('./routes/auth')
 const supportRouter = require('./routes/support')
+const partnersRouter = require('./routes/partners')
+const storesRouter = require('./routes/stores')
 
 const app = express()
 const server = http.createServer(app)
@@ -66,6 +68,8 @@ app.use('/api/admin', adminRouter)
 app.use('/api/visits', visitsRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/support', supportRouter)
+app.use('/api/partners', partnersRouter)
+app.use('/api/stores', storesRouter)
 
 // 404 Handler for undefined API routes
 app.use('/api', (req, res) => {
@@ -73,6 +77,17 @@ app.use('/api', (req, res) => {
 })
 
 // Production Static Assets & SPA Routing
+const partnerDist = path.join(__dirname, '..', 'partner', 'dist')
+if (fs.existsSync(partnerDist)) {
+  app.get('/partner', (req, res) => {
+    res.redirect(301, '/partner/')
+  })
+  app.use('/partner', express.static(partnerDist))
+  app.get('/partner/*', (req, res) => {
+    res.sendFile(path.join(partnerDist, 'index.html'))
+  })
+}
+
 const adminDist = path.join(__dirname, '..', 'admin', 'dist')
 if (fs.existsSync(adminDist)) {
   app.get('/admin', (req, res) => {

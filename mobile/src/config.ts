@@ -1,12 +1,15 @@
 import { Platform } from 'react-native'
 
-// Default LAN IP for physical device testing on local network (192.168.29.143)
-// For Android emulator, 10.0.2.2 points to host machine
-export const DEFAULT_HOST = Platform.select({
-  android: '192.168.29.143', // Works for both physical phone on Wi-Fi and emulator
-  ios: '192.168.29.143',
-  default: 'localhost',
-})
+const getHost = () => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
+    return window.location.hostname
+  }
+  return Platform.select({
+    android: '192.168.29.143', // Works for both physical phone on Wi-Fi and emulator
+    ios: '192.168.29.143',
+    default: 'localhost',
+  })
+}
 
 export const APP_NAME = 'Zippo'
 export const APP_TAGLINE = 'Your Everyday Delivery Hub'
@@ -18,7 +21,11 @@ export const PROD_API_URL = 'https://zippo-api.onrender.com'
 // Automatically selects LAN IP in local Expo development, or cloud URL in production APK / app builds.
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
-  (__DEV__ ? `http://${DEFAULT_HOST}:${BACKEND_PORT}` : PROD_API_URL)
+  (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname
+    ? `http://${window.location.hostname}:${BACKEND_PORT}`
+    : __DEV__
+    ? `http://${getHost()}:${BACKEND_PORT}`
+    : PROD_API_URL)
 
 export const THEME = {
   colors: {

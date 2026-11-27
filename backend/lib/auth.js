@@ -48,6 +48,21 @@ function signAdminToken() {
   )
 }
 
+function signPartnerToken(partner) {
+  return jwt.sign(
+    {
+      sub: partner.id,
+      role: 'partner',
+      category: partner.category || 'All',
+      phone: partner.phone,
+      name: partner.name,
+      storeName: partner.store_name || partner.storeName || '',
+    },
+    JWT_SECRET,
+    { expiresIn: CUSTOMER_TOKEN_EXPIRY }
+  )
+}
+
 // Backward-compatible alias
 function signToken(user) {
   return signCustomerToken(user)
@@ -73,6 +88,7 @@ module.exports = {
   comparePassword,
   signCustomerToken,
   signAdminToken,
+  signPartnerToken,
   signToken,
   verifyToken,
   validatePhoneNumber,

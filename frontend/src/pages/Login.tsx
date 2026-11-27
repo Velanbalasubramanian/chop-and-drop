@@ -10,15 +10,20 @@ export default function Login() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
     try {
       await login(phone.trim(), password)
-      navigate('/my-orders')
+      setSuccess('Logged in successfully! 👋 Taking you to your orders...')
+      setTimeout(() => {
+        navigate('/my-orders')
+      }, 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not log in.')
     } finally {
@@ -51,9 +56,14 @@ export default function Login() {
             placeholder="Enter your password"
           />
         </label>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Logging in…' : 'Log in'}
+        <button type="submit" className="btn btn-primary" disabled={loading || !!success} style={success ? { backgroundColor: '#059669', borderColor: '#059669' } : undefined}>
+          {loading ? 'Logging in…' : success ? '✓ Success! Taking you in...' : 'Log in'}
         </button>
+        {success && (
+          <div style={{ backgroundColor: '#ecfdf5', border: '1.5px solid #6ee7b7', borderRadius: '8px', padding: '12px 16px', color: '#065f46', marginTop: '12px', fontWeight: 'bold' }}>
+            {success}
+          </div>
+        )}
         {error && <p className="form-status form-status-error">{error}</p>}
       </form>
 

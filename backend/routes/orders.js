@@ -5,9 +5,17 @@ const { sendOrderConfirmationEmail } = require('../lib/mailer')
 const { sendOrderConfirmationSms } = require('../lib/sms')
 const { requireAuth, attachUserIfPresent } = require('../middleware/requireAuth')
 const { orderLimiter } = require('../middleware/rateLimiters')
-const { createOrder, getOrdersByUserId, getOrderByTrack, getOrderById, requestOrderRefund } = require('../lib/db')
+const {
+  createOrder,
+  getOrdersByUserId,
+  getOrderByTrack,
+  getOrderById,
+  requestOrderRefund,
+  reduceOrderItemsStock,
+  getAllProducts,
+} = require('../lib/db')
 const { validatePhoneNumber } = require('../lib/auth')
-const { emitNewOrder, emitOrderRefundUpdate } = require('../lib/socket')
+const { emitNewOrder, emitOrderRefundUpdate, emitStockUpdate } = require('../lib/socket')
 
 const router = express.Router()
 const STATUSES = ['received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered']
@@ -46,6 +54,54 @@ router.post('/', orderLimiter, requireAuth, async (req, res) => {
   const cleanPaymentMethod = isOnline ? 'online' : 'cod'
   const cleanPaymentStatus = isOnline ? (paymentStatus || 'paid') : 'pending'
 
+  // Validate stock availability before creating order
+  const allProds = await getAllProducts()
+  const structuredCart = Array.isArray(req.body.cartItems) ? req.body.cartItems : []
+
+  if (structuredCart.length > 0) {
+    for (const item of structuredCart) {
+      if (item.productId) {
+        const prod = allProds.find((p) => p.id === item.productId)
+        if (prod && prod.stockQuantity !== undefined) {
+          if (prod.stockQuantity <= 0 || prod.isAvailable === false) {
+            return res.status(400).json({ error: `Not Available: "${prod.name}" is currently out of stock.` })
+          }
+          if (item.quantity > prod.stockQuantity) {
+            return res.status(400).json({
+              error: `Not Available: Only ${prod.stockQuantity} item(s) available in stock for "${prod.name}". You requested ${item.quantity}.`,
+            })
+          }
+        }
+      }
+    }
+  } else {
+    // Check parsed text segments if cartItems array wasn't passed
+    const segments = cleanItems.split(',').map((s) => s.trim()).filter(Boolean)
+    for (const segment of segments) {
+      const match = segment.match(/^(\d+(?:\.\d+)?)\s*x\s*(.+)$/i)
+      const qty = match ? parseFloat(match[1]) : 1
+      const itemName = match ? match[2].trim().toLowerCase() : segment.toLowerCase()
+
+      const matchedProd = allProds.find(
+        (p) =>
+          p.name.toLowerCase().trim() === itemName ||
+          p.id.toLowerCase().trim() === itemName ||
+          itemName.includes(p.name.toLowerCase())
+      )
+
+      if (matchedProd && matchedProd.stockQuantity !== undefined) {
+        if (matchedProd.stockQuantity <= 0 || matchedProd.isAvailable === false) {
+          return res.status(400).json({ error: `Not Available: "${matchedProd.name}" is currently out of stock.` })
+        }
+        if (qty > matchedProd.stockQuantity) {
+          return res.status(400).json({
+            error: `Not Available: Only ${matchedProd.stockQuantity} item(s) available in stock for "${matchedProd.name}". You requested ${qty}.`,
+          })
+        }
+      }
+    }
+  }
+
   const order = {
     id: makeOrderId(),
     userId: req.user.id,
@@ -66,6 +122,16 @@ router.post('/', orderLimiter, requireAuth, async (req, res) => {
 
   // Save to database
   const savedOrder = await createOrder(order)
+
+  // Dynamically reduce stock quantity for ordered items
+  try {
+    const reducedProducts = await reduceOrderItemsStock(cleanItems, req.body.cartItems || [])
+    if (reducedProducts && reducedProducts.length > 0) {
+      emitStockUpdate(reducedProducts)
+    }
+  } catch (err) {
+    console.error('[orders] Stock deduction error:', err)
+  }
 
   // Real-time broadcast to admin dashboard
   emitNewOrder(savedOrder)

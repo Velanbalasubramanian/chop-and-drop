@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { submitOrder } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { products } from '../data/products'
 import AuthCard from '../components/AuthCard'
 import PaymentModal from '../components/PaymentModal'
 import type { OrderPayload, PaymentMethod } from '../types'
@@ -14,7 +13,7 @@ type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function Order() {
   const { user, token, loading: authLoading } = useAuth()
-  const { items: cartItems, formatForOrder, totalPrice, clearCart, updateQuantity, removeItem } = useCart()
+  const { items: cartItems, products, formatForOrder, totalPrice, clearCart, updateQuantity, removeItem } = useCart()
 
   const [form, setForm] = useState<OrderPayload>({
     name: user?.name || '',
@@ -83,6 +82,11 @@ export default function Order() {
       paymentStatus: chosenPaymentMethod === 'online' ? 'paid' : 'pending',
       amount: grandTotal,
       transactionId: txnId || '',
+      cartItems: cartItems.map((ci) => ({
+        productId: ci.productId,
+        name: ci.productId,
+        quantity: ci.quantity,
+      })),
     }
 
     try {
@@ -107,6 +111,19 @@ export default function Order() {
     if (!form.address.trim()) {
       setErrorMessage('Please provide a delivery address.')
       return
+    }
+
+    for (const { item, prod } of detailedCartItems) {
+      if (prod && prod.stockQuantity !== undefined) {
+        if (prod.stockQuantity <= 0 || prod.isAvailable === false) {
+          setErrorMessage(`"${prod.name}" is currently out of stock. Please remove it from your cart.`)
+          return
+        }
+        if (item.quantity > prod.stockQuantity) {
+          setErrorMessage(`"${prod.name}" exceeds available stock (Only ${prod.stockQuantity} available). Please reduce quantity.`)
+          return
+        }
+      }
     }
 
     if (paymentMethod === 'online') {
@@ -464,8 +481,15 @@ export default function Order() {
                         <span>{item.quantity}</span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => {
+                            if (prod?.stockQuantity !== undefined && item.quantity >= prod.stockQuantity) {
+                              window.alert(`Not Available: Only ${prod.stockQuantity} item(s) available in stock for "${prod.name}".`)
+                              return
+                            }
+                            updateQuantity(item.productId, item.quantity + 1)
+                          }}
                           aria-label="Increase"
+                          style={prod?.stockQuantity !== undefined && item.quantity >= prod.stockQuantity ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                         >
                           +
                         </button>

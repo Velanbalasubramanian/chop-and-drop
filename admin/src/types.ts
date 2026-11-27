@@ -24,6 +24,14 @@ export interface AdminOrder {
   refundProcessedAt?: string
   refundUpi?: string
   receivedAt: string
+  partnerId?: string
+  partnerStoreName?: string
+  partnerPhone?: string
+  partnerName?: string
+  partnerCategory?: string
+  followUpNotes?: string
+  riderName?: string
+  riderPhone?: string
 }
 
 export interface User {
@@ -51,4 +59,36 @@ export interface VisitsSummary {
   total: number
   today: number
   recent: { path: string; visitedAt: string }[]
+}
+
+export interface Partner {
+  id: string
+  name: string
+  phone: string
+  email?: string
+  category: string
+  storeName?: string
+  address?: string
+  rating?: number
+  deliveryTime?: string
+  description?: string
+  bannerImage?: string
+  status: 'active' | 'inactive'
+  createdAt: string
+}
+
+export interface PartnerAuthResult {
+  ok: boolean
+  token: string
+  partner: Partner
+}
+
+export interface PartnerStats {
+  total: number
+  received: number
+  preparing: number
+  outForDelivery: number
+  delivered: number
+  revenue: number
+  category: string
 }

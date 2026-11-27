@@ -7,6 +7,7 @@ import type {
   OrderResponse,
   OtpRequestResult,
   Product,
+  Store,
   SupportTicket,
   TrackedOrder,
   User,
@@ -55,8 +56,9 @@ async function apiRequest<T>(
 
     if (!res.ok) {
       const errorMsg = data.error || `Server returned ${res.status}: ${res.statusText}`
-      const err = new Error(errorMsg) as Error & { needsName?: boolean }
+      const err = new Error(errorMsg) as Error & { needsName?: boolean; alreadyRegistered?: boolean }
       if (data.needsName) err.needsName = true
+      if (data.alreadyRegistered || data.alreadyExists || res.status === 409) err.alreadyRegistered = true
       throw err
     }
 
@@ -82,6 +84,23 @@ export async function getProducts(): Promise<Product[]> {
     console.log('Using fallback local catalog:', error)
     return fallbackProducts
   }
+}
+
+export async function getStores(): Promise<Store[]> {
+  try {
+    const data = await apiRequest<{ ok: boolean; stores: Store[] }>('/api/stores')
+    if (data && Array.isArray(data.stores)) {
+      return data.stores
+    }
+    return []
+  } catch (error) {
+    console.log('Failed to fetch stores:', error)
+    return []
+  }
+}
+
+export async function getStoreById(storeId: string): Promise<{ ok: boolean; store: Store & { products: Product[] } }> {
+  return await apiRequest<{ ok: boolean; store: Store & { products: Product[] } }>(`/api/stores/${encodeURIComponent(storeId)}`)
 }
 
 // ---------------- ORDERS ----------------

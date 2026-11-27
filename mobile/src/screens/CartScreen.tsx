@@ -1,5 +1,7 @@
 import React from 'react'
 import {
+  Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,7 +19,7 @@ export default function CartScreen() {
   const navigation = useNavigation<any>()
   const route = useRoute<any>()
   const { user } = useAuth()
-  const { items, products, updateQuantity, clearCart, totalPrice, totalCount } = useCart()
+  const { items, products, updateQuantity, clearCart, totalPrice, totalCount, stockAlert, clearStockAlert } = useCart()
 
   // Ensure bottom tabs are always visible: if opened via root stack 'Cart', switch to CartTab
   React.useEffect(() => {
@@ -32,6 +34,33 @@ export default function CartScreen() {
     } catch {
       navigation.navigate('MainTabs', { screen: 'ProductsTab' })
     }
+  }
+
+  function handleProceedToCheckout() {
+    for (const cartItem of items) {
+      const prod = products.find((p) => p.id === cartItem.productId)
+      if (prod && prod.stockQuantity !== undefined) {
+        if (prod.stockQuantity <= 0 || prod.isAvailable === false) {
+          const msg = `"${prod.name}" is currently out of stock. Please remove it from your cart to proceed.`
+          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            window.alert(msg)
+          } else {
+            Alert.alert('Out of Stock', msg)
+          }
+          return
+        }
+        if (cartItem.quantity > prod.stockQuantity) {
+          const msg = `"${prod.name}" exceeds available stock (Only ${prod.stockQuantity} available). Please adjust quantity.`
+          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            window.alert(msg)
+          } else {
+            Alert.alert('Stock Exceeded', msg)
+          }
+          return
+        }
+      }
+    }
+    navigation.navigate('Checkout')
   }
 
   if (items.length === 0) {
@@ -64,6 +93,17 @@ export default function CartScreen() {
       <Header title="Your Cart" showCart={false} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Real-time Stock Notification Banner */}
+        {stockAlert && (
+          <View style={styles.stockAlertBanner}>
+            <Ionicons name="alert-circle" size={20} color="#dc2626" />
+            <Text style={styles.stockAlertText}>{stockAlert}</Text>
+            <TouchableOpacity onPress={clearStockAlert} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close" size={16} color="#dc2626" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Cart items list */}
         <View style={styles.itemsCard}>
           <View style={styles.cardHeader}>
@@ -77,6 +117,8 @@ export default function CartScreen() {
             const product = products.find((p) => p.id === cartItem.productId)
             if (!product) return null
             const itemTotal = product.price * cartItem.quantity
+            const isMaxReached =
+              product.stockQuantity !== undefined && cartItem.quantity >= product.stockQuantity
 
             return (
               <View key={product.id} style={styles.itemRow}>
@@ -93,6 +135,21 @@ export default function CartScreen() {
                     <Text style={styles.itemUnit}>
                       ₹{product.price} / {product.unit}
                     </Text>
+
+                    {product.stockQuantity !== undefined && (
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '700',
+                          color: isMaxReached ? '#dc2626' : '#16a34a',
+                          marginTop: 3,
+                        }}
+                      >
+                        {isMaxReached
+                          ? `⚠️ Not Available: Only ${product.stockQuantity} item(s) available in stock for "${product.name}".`
+                          : `● ${product.stockQuantity} available in stock`}
+                      </Text>
+                    )}
                   </View>
                 </View>
 
@@ -109,8 +166,22 @@ export default function CartScreen() {
                     <Text style={styles.stepperCount}>{cartItem.quantity}</Text>
 
                     <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => updateQuantity(product.id, cartItem.quantity + 1)}
+                      style={[
+                        styles.stepBtn,
+                        isMaxReached && { backgroundColor: '#94a3b8', opacity: 0.6 },
+                      ]}
+                      onPress={() => {
+                        if (isMaxReached) {
+                          const msg = `Not Available: Only ${product.stockQuantity} item(s) available in stock for "${product.name}".`
+                          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                            window.alert(msg)
+                          } else {
+                            Alert.alert('Not Available', msg)
+                          }
+                          return
+                        }
+                        updateQuantity(product.id, cartItem.quantity + 1)
+                      }}
                     >
                       <Ionicons name="add" size={14} color="#ffffff" />
                     </TouchableOpacity>
@@ -178,7 +249,7 @@ export default function CartScreen() {
         <TouchableOpacity
           style={styles.checkoutBtn}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('Checkout')}
+          onPress={handleProceedToCheckout}
         >
           <Text style={styles.checkoutBtnText}>Proceed to Checkout</Text>
           <Ionicons name="arrow-forward" size={16} color="#ffffff" />
@@ -192,6 +263,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.colors.background,
+  },
+  stockAlertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    gap: 8,
+  },
+  stockAlertText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#dc2626',
+    lineHeight: 16,
   },
   scrollContent: {
     padding: 16,

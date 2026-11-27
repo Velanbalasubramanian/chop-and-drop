@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { THEME } from '../config'
 import { useCart } from '../context/CartContext'
@@ -10,10 +10,17 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { items, addItem, updateQuantity } = useCart()
+  const { items, products, addItem, updateQuantity, notifyStockLimit } = useCart()
 
-  const cartItem = items.find((i) => i.productId === product.id)
+  // Always use the latest live product state from CartContext for real-time stock sync
+  const liveProduct = products.find((p) => p.id === product.id) || product
+  const stock = liveProduct.stockQuantity
+
+  const cartItem = items.find((i) => i.productId === liveProduct.id)
   const count = cartItem ? cartItem.quantity : 0
+  const isOutOfStock = stock !== undefined && (stock <= 0 || liveProduct.isAvailable === false)
+  const isLowStock = stock !== undefined && stock > 0 && stock <= 5
+  const isMaxReached = stock !== undefined && count >= stock
 
   return (
     <View style={styles.card}>
@@ -23,29 +30,56 @@ export default function ProductCard({ product }: ProductCardProps) {
           <View style={styles.vegIconDot} />
         </View>
 
-        {product.tamilName ? (
+        {liveProduct.tamilName ? (
           <View style={styles.tamilBadge}>
-            <Text style={styles.tamilText}>{product.tamilName}</Text>
+            <Text style={styles.tamilText}>{liveProduct.tamilName}</Text>
           </View>
         ) : null}
       </View>
 
-      <Text style={styles.title}>{product.name}</Text>
-      <Text style={styles.unit}>{product.unit}</Text>
+      {stock !== undefined && (
+        <View style={{ marginVertical: 3 }}>
+          {isOutOfStock ? (
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#dc2626' }}>● Out of Stock</Text>
+          ) : isLowStock ? (
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#d97706' }}>● Only {stock} left</Text>
+          ) : (
+            <Text style={{ fontSize: 11, fontWeight: '600', color: '#059669' }}>● {stock} in stock</Text>
+          )}
+        </View>
+      )}
+
+      <Text style={styles.title}>{liveProduct.name}</Text>
+      {liveProduct.storeName ? (
+        <Text style={{ fontSize: 11, fontWeight: '700', color: THEME.colors.primary, marginVertical: 1 }}>
+          🏪 {liveProduct.storeName}
+        </Text>
+      ) : null}
+      <Text style={styles.unit}>{liveProduct.unit}</Text>
       <Text style={styles.description} numberOfLines={2}>
-        {product.description}
+        {liveProduct.description}
       </Text>
 
       <View style={styles.footerRow}>
         <View>
           <Text style={styles.priceLabel}>Price</Text>
-          <Text style={styles.price}>₹{product.price}</Text>
+          <Text style={styles.price}>₹{liveProduct.price}</Text>
         </View>
 
-        {count === 0 ? (
+        {isOutOfStock ? (
+          <View style={[styles.addButton, { opacity: 0.6, borderColor: '#cbd5e1', backgroundColor: '#f1f5f9' }]}>
+            <Text style={[styles.addButtonText, { color: '#64748b' }]}>SOLD OUT</Text>
+          </View>
+        ) : count === 0 ? (
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => addItem(product.id, 1)}
+            onPress={() => {
+              if (stock !== undefined && (stock <= 0 || liveProduct.isAvailable === false)) {
+                notifyStockLimit(liveProduct.name, 0)
+                return
+              }
+              addItem(liveProduct.id, 1)
+            }}
             activeOpacity={0.85}
           >
             <Text style={styles.addButtonText}>ADD</Text>
@@ -55,7 +89,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <View style={styles.stepperBox}>
             <TouchableOpacity
               style={styles.stepBtn}
-              onPress={() => updateQuantity(product.id, count - 1)}
+              onPress={() => updateQuantity(liveProduct.id, count - 1)}
               activeOpacity={0.7}
             >
               <Ionicons name="remove" size={16} color="#ffffff" />
@@ -64,8 +98,20 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Text style={styles.stepperCount}>{count}</Text>
 
             <TouchableOpacity
-              style={styles.stepBtn}
-              onPress={() => updateQuantity(product.id, count + 1)}
+              style={[
+                styles.stepBtn,
+                isMaxReached && {
+                  backgroundColor: '#94a3b8',
+                  opacity: 0.6,
+                },
+              ]}
+              onPress={() => {
+                if (isMaxReached) {
+                  notifyStockLimit(liveProduct.name, stock ?? 0)
+                  return
+                }
+                updateQuantity(liveProduct.id, count + 1)
+              }}
               activeOpacity={0.7}
             >
               <Ionicons name="add" size={16} color="#ffffff" />
@@ -73,6 +119,16 @@ export default function ProductCard({ product }: ProductCardProps) {
           </View>
         )}
       </View>
+
+      {/* Prominent Red Text In-Card Stock Limit Notification */}
+      {isMaxReached && (
+        <View style={styles.stockAlertCardBanner}>
+          <Ionicons name="alert-circle" size={15} color="#dc2626" />
+          <Text style={styles.stockAlertCardText}>
+            Not Available: Only {stock} item(s) available in stock for "{liveProduct.name}".
+          </Text>
+        </View>
+      )}
     </View>
   )
 }
@@ -198,5 +254,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
     paddingHorizontal: 4,
+  },
+  stockAlertCardBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    marginTop: 10,
+    gap: 6,
+  },
+  stockAlertCardText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#dc2626',
+    lineHeight: 16,
   },
 })

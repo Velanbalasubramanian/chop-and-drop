@@ -1,4 +1,4 @@
-import type { AdminOrder, OrderStatus, SupportTicket, User, VisitsSummary } from './types'
+import type { AdminOrder, OrderStatus, Partner, SupportTicket, User, VisitsSummary } from './types'
 
 function getAdminAuthHeaders(tokenOrPassword: string): Record<string, string> {
   if (tokenOrPassword.includes('.') || tokenOrPassword.length > 30) {
@@ -41,6 +41,29 @@ export async function updateOrderStatus(token: string, orderId: string, status: 
     body: JSON.stringify({ status }),
   })
   if (!res.ok) throw new Error('Could not update that order.')
+  return res.json()
+}
+
+export async function updateOrderFollowUp(
+  token: string,
+  orderId: string,
+  payload: {
+    status?: OrderStatus
+    followUpNotes?: string
+    riderName?: string
+    riderPhone?: string
+    partnerStoreName?: string
+  }
+): Promise<{ ok: boolean; order: AdminOrder }> {
+  const res = await fetch(`/api/admin/orders/${orderId}/follow-up`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAdminAuthHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) throw new Error('Could not update order follow-up.')
   return res.json()
 }
 
@@ -118,4 +141,66 @@ export async function fetchVisitsSummary(token: string): Promise<VisitsSummary> 
   })
   if (!res.ok) throw new Error('Could not load site visits.')
   return res.json()
+}
+
+// Admin Partner Management
+export async function fetchAdminPartners(token: string): Promise<{ partners: Partner[] }> {
+  const res = await fetch('/api/admin/partners', {
+    headers: getAdminAuthHeaders(token),
+  })
+  if (!res.ok) throw new Error('Could not load partners.')
+  return res.json()
+}
+
+export async function createAdminPartner(
+  token: string,
+  partnerData: {
+    name: string
+    phone: string
+    password: string
+    category: string
+    storeName?: string
+    address?: string
+    email?: string
+  }
+): Promise<{ ok: boolean; partner: Partner; message: string }> {
+  const res = await fetch('/api/admin/partners', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAdminAuthHeaders(token),
+    },
+    body: JSON.stringify(partnerData),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not create partner.')
+  return data
+}
+
+export async function updateAdminPartner(
+  token: string,
+  partnerId: string,
+  updates: Partial<Partner> & { password?: string }
+): Promise<{ ok: boolean; partner: Partner }> {
+  const res = await fetch(`/api/admin/partners/${partnerId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAdminAuthHeaders(token),
+    },
+    body: JSON.stringify(updates),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not update partner.')
+  return data
+}
+
+export async function deleteAdminPartner(token: string, partnerId: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`/api/admin/partners/${partnerId}`, {
+    method: 'DELETE',
+    headers: getAdminAuthHeaders(token),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not delete partner.')
+  return data
 }
