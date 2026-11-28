@@ -79,6 +79,12 @@ export interface TrackedOrder {
   refundRequestedAt?: string
   refundProcessedAt?: string
   refundUpi?: string
+  riderName?: string
+  riderPhone?: string
+  partnerStoreName?: string
+  cancelReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
   receivedAt: string
   steps: OrderStatus[]
 }
@@ -119,4 +125,126 @@ export interface SupportTicket {
   message: string
   status: string
   createdAt: string
+}
+
+// ---------------- DELIVERY PARTNER / RIDER TYPES ----------------
+export interface Rider {
+  id: string
+  name: string
+  phone: string
+  vehicle: string
+  zone: string
+  status: 'online' | 'offline'
+  rating: number
+  createdAt?: string
+}
+
+export interface DeliveryOrder {
+  id: string
+  name: string
+  phone: string
+  email?: string
+  address: string
+  deliverySlot: string
+  items: string
+  notes?: string
+  status: OrderStatus
+  paymentMethod?: PaymentMethod
+  paymentStatus?: PaymentStatus
+  amount?: number
+  receivedAt: string
+  partnerStoreName?: string
+  partnerAddress?: string
+  partnerPhone?: string
+  riderName?: string
+  riderPhone?: string
+  cancelReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
+}
+
+export interface DeliveryStats {
+  completedCount: number
+  activeCount: number
+  totalEarnings: number
+  codCashCollected: number
+  rating: number
+  vehicle: string
+  zone: string
+  payoutRate: number
+}
+
+export interface RiderAuthResult {
+  ok: boolean
+  token: string
+  rider: Rider
+}
+
+// ---------------- STORE MERCHANT / PARTNER TYPES ----------------
+export interface Partner {
+  id: string
+  name: string
+  phone: string
+  email?: string
+  category: string
+  storeName?: string
+  address?: string
+  status: 'active' | 'inactive'
+  rating?: number
+  deliveryTime?: string
+  createdAt?: string
+}
+
+export interface PartnerProduct {
+  id: string
+  name: string
+  tamilName?: string
+  category: string
+  unit: string
+  price: number
+  description?: string
+  partnerId?: string
+  stockQuantity: number
+  isAvailable: boolean
+}
+
+export interface PartnerOrder {
+  id: string
+  name: string
+  phone: string
+  email?: string
+  address: string
+  deliverySlot: string
+  items: string
+  notes?: string
+  status: OrderStatus
+  paymentMethod?: PaymentMethod
+  paymentStatus?: PaymentStatus
+  amount?: number
+  transactionId?: string
+  receivedAt: string
+  isPartnerCategory?: boolean
+  matchingItems?: string[]
+  riderName?: string
+  riderPhone?: string
+  cancelReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
+}
+
+export interface PartnerStats {
+  total: number
+  received: number
+  preparing: number
+  outForDelivery: number
+  delivered: number
+  cancelled?: number
+  revenue: number
+  category: string
+}
+
+export interface PartnerAuthResult {
+  ok: boolean
+  token: string
+  partner: Partner
 }

@@ -69,12 +69,27 @@ router.post('/login', authLimiter, async (req, res) => {
   const cleanPhone = validatePhoneNumber(phone)
 
   if (!cleanPhone || !password) {
-    return res.status(400).json({ error: 'Valid phone number and password are required.' })
+    return res.status(400).json({ error: 'Valid 10-digit mobile number and password are required.' })
   }
 
   const user = await getUserByPhone(cleanPhone)
-  if (!user || !user.passwordHash || !(await comparePassword(password, user.passwordHash))) {
-    return res.status(401).json({ error: 'Incorrect phone number or password.' })
+  if (!user) {
+    return res.status(401).json({
+      error: 'No account found with this phone number. Please sign up or log in with OTP.',
+      notFound: true,
+    })
+  }
+
+  if (!user.passwordHash) {
+    return res.status(401).json({
+      error: 'This account was created via OTP. Please sign in using "Log in with OTP" or register to set a password.',
+      needsOtpLogin: true,
+    })
+  }
+
+  const passwordMatches = await comparePassword(password, user.passwordHash)
+  if (!passwordMatches) {
+    return res.status(401).json({ error: 'Incorrect password. Please try again.' })
   }
 
   const token = signCustomerToken(user)
@@ -86,7 +101,7 @@ router.post('/login', authLimiter, async (req, res) => {
 router.post('/otp/request', authLimiter, async (req, res) => {
   const { phone } = req.body || {}
   const cleanPhone = validatePhoneNumber(phone)
-  if (!cleanPhone) return res.status(400).json({ error: 'A valid phone number is required.' })
+  if (!cleanPhone) return res.status(400).json({ error: 'A valid 10-digit mobile number is required.' })
 
   const user = await getUserByPhone(cleanPhone)
   const isNewUser = !user
@@ -94,10 +109,12 @@ router.post('/otp/request', authLimiter, async (req, res) => {
   const code = generateOtp(cleanPhone)
   const smsResult = await sendOtpSms(cleanPhone, code)
 
+  const isDev = process.env.NODE_ENV !== 'production'
   res.json({
     ok: true,
     isNewUser,
-    devOtp: smsResult.sent ? undefined : code,
+    devOtp: (isDev || !smsResult.sent) ? code : undefined,
+    message: smsResult.sent ? 'OTP sent successfully to your mobile number.' : 'OTP generated (use test OTP in dev mode).',
   })
 })
 
@@ -115,10 +132,10 @@ router.post('/otp/verify', authLimiter, async (req, res) => {
 
   if (!result.ok) {
     const messages = {
-      'no-otp-requested': 'Please request a code first.',
+      'no-otp-requested': 'Please request a verification code first.',
       expired: 'This code has expired. Please request a new one.',
       'too-many-attempts': 'Too many incorrect attempts. Please request a new code.',
-      incorrect: 'Incorrect code.',
+      incorrect: 'Incorrect code. Please check and try again.',
     }
     return res.status(400).json({ error: messages[result.reason] || 'Could not verify that code.' })
   }

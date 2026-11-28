@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Zippo Rider",
+    "slug": "zippo-rider",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "primaryColor": "#f97316",
+    "splash": {
+      "backgroundColor": "#0f172a",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zippo.rider"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f172a",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "package": "com.zippo.rider",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.svg"
+    }
+  }
+}

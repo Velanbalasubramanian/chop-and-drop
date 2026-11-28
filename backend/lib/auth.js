@@ -63,6 +63,20 @@ function signPartnerToken(partner) {
   )
 }
 
+function signDeliveryToken(rider) {
+  return jwt.sign(
+    {
+      sub: rider.id,
+      role: 'delivery',
+      phone: rider.phone,
+      name: rider.name,
+      vehicle: rider.vehicle || 'Bike',
+    },
+    JWT_SECRET,
+    { expiresIn: CUSTOMER_TOKEN_EXPIRY }
+  )
+}
+
 // Backward-compatible alias
 function signToken(user) {
   return signCustomerToken(user)
@@ -77,10 +91,40 @@ function verifyToken(token) {
   }
 }
 
+function normalizePhoneNumber(phone) {
+  if (!phone) return null
+  let cleaned = String(phone).trim().replace(/[\s\-()]/g, '')
+  if (!cleaned) return null
+
+  // Strip Indian prefix if present (+91, 91, or leading 0)
+  if (cleaned.startsWith('+91') && cleaned.length === 13) {
+    cleaned = cleaned.slice(3)
+  } else if (cleaned.startsWith('91') && cleaned.length === 12) {
+    cleaned = cleaned.slice(2)
+  } else if (cleaned.startsWith('0') && cleaned.length === 11) {
+    cleaned = cleaned.slice(1)
+  }
+
+  // 10-digit Indian mobile number
+  if (/^[6-9]\d{9}$/.test(cleaned)) {
+    return cleaned
+  }
+
+  // General 10-digit number
+  if (/^\d{10}$/.test(cleaned)) {
+    return cleaned
+  }
+
+  // Valid international format (e.g. +14155552671 or 10-15 digits)
+  if (/^\+?[0-9]{10,15}$/.test(cleaned)) {
+    return cleaned
+  }
+
+  return null
+}
+
 function validatePhoneNumber(phone) {
-  const cleaned = String(phone || '').replace(/[\s\-()]/g, '')
-  // Basic validation: 10 to 15 digits
-  return /^\+?[0-9]{10,15}$/.test(cleaned) ? cleaned : null
+  return normalizePhoneNumber(phone)
 }
 
 module.exports = {
@@ -89,7 +133,9 @@ module.exports = {
   signCustomerToken,
   signAdminToken,
   signPartnerToken,
+  signDeliveryToken,
   signToken,
   verifyToken,
   validatePhoneNumber,
+  normalizePhoneNumber,
 }

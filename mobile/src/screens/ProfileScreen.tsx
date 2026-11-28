@@ -160,6 +160,46 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Partner / Merchant Mode Card */}
+        <TouchableOpacity
+          style={styles.partnerBannerCard}
+          onPress={() => navigation.navigate('PartnerPortal')}
+        >
+          <View style={styles.partnerBannerIcon}>
+            <Ionicons name="storefront" size={24} color="#ffffff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.partnerBannerTitle}>Partner Portal</Text>
+              <View style={styles.partnerPill}>
+                <Text style={styles.partnerPillText}>MERCHANT MODE</Text>
+              </View>
+            </View>
+            <Text style={styles.partnerBannerSub}>Manage orders, store inventory &amp; stock on Android &amp; iOS</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#10b981" />
+        </TouchableOpacity>
+
+        {/* Delivery Partner Mode Card */}
+        <TouchableOpacity
+          style={styles.riderBannerCard}
+          onPress={() => navigation.navigate('RiderPortal')}
+        >
+          <View style={styles.riderBannerIcon}>
+            <Ionicons name="bicycle" size={26} color="#ffffff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.riderBannerTitle}>Delivery Partner Portal</Text>
+              <View style={styles.riderPill}>
+                <Text style={styles.riderPillText}>RIDER MODE</Text>
+              </View>
+            </View>
+            <Text style={styles.riderBannerSub}>Accept pickups & deliver orders on Android & iOS</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#f97316" />
+        </TouchableOpacity>
+
         {/* Quick Menu List */}
         <View style={styles.menuCard}>
           <TouchableOpacity
@@ -422,5 +462,93 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#94a3b8',
     marginTop: 2,
+  },
+  partnerBannerCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 14,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1.5,
+    borderColor: '#10b981',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  partnerBannerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  partnerBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  partnerBannerSub: {
+    fontSize: 11,
+    color: '#cbd5e1',
+    marginTop: 2,
+  },
+  partnerPill: {
+    backgroundColor: '#047857',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  partnerPillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  riderBannerCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 14,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1.5,
+    borderColor: '#f97316',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  riderBannerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f97316',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  riderBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  riderBannerSub: {
+    fontSize: 11,
+    color: '#cbd5e1',
+    marginTop: 2,
+  },
+  riderPill: {
+    backgroundColor: '#16a34a',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  riderPillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#ffffff',
   },
 })

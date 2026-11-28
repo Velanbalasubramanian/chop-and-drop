@@ -44,6 +44,11 @@ export interface PartnerOrder {
   receivedAt: string
   isPartnerCategory?: boolean
   matchingItems?: string[]
+  riderName?: string
+  riderPhone?: string
+  cancelReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
 }
 
 export interface PartnerStats {
@@ -52,6 +57,7 @@ export interface PartnerStats {
   preparing: number
   outForDelivery: number
   delivered: number
+  cancelled?: number
   revenue: number
   category: string
 }

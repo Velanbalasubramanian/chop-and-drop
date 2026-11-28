@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 import PasswordInput from '../components/PasswordInput'
@@ -7,7 +7,8 @@ import PasswordInput from '../components/PasswordInput'
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [phone, setPhone] = useState('')
+  const [params] = useSearchParams()
+  const [phone, setPhone] = useState(params.get('phone') || '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -64,7 +65,18 @@ export default function Login() {
             {success}
           </div>
         )}
-        {error && <p className="form-status form-status-error">{error}</p>}
+        {error && (
+          <div className="form-status form-status-error">
+            {error}
+            {/OTP/i.test(error) && (
+              <div style={{ marginTop: '8px' }}>
+                <Link to={`/otp-login?phone=${encodeURIComponent(phone)}`} style={{ fontWeight: 'bold', textDecoration: 'underline' }}>
+                  👉 Click here to Log in with OTP
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </form>
 
       <p className="auth-switch">

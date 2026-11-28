@@ -56,6 +56,7 @@ export function App() {
   // Login form state
   const [loginPhone, setLoginPhone] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
 
@@ -87,6 +88,13 @@ export function App() {
   // Quick Restock Edit Modal
   const [editProduct, setEditProduct] = useState<PartnerProduct | null>(null)
   const [editStockInput, setEditStockInput] = useState('')
+
+  // Cancel Order Reason Modal
+  const [cancelModalOrder, setCancelModalOrder] = useState<PartnerOrder | null>(null)
+  const [cancelReasonOption, setCancelReasonOption] = useState<string>('Item out of stock')
+  const [cancelCustomReason, setCancelCustomReason] = useState<string>('')
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancelModalError, setCancelModalError] = useState('')
 
   // 1. Handle Login
   async function handleLogin(e?: React.FormEvent) {
@@ -269,6 +277,15 @@ export function App() {
       setOrders((prev) =>
         prev.map((o) => (o.id === data.orderId ? { ...o, status: data.status as any } : o))
       )
+      if (token) {
+        fetchPartnerStats(token).then(setStats).catch(() => {})
+      }
+    }
+
+    function onRiderAssigned(data: { orderId: string; riderName: string; riderPhone: string }) {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === data.orderId ? { ...o, riderName: data.riderName, riderPhone: data.riderPhone } : o))
+      )
     }
 
     socket.on('connect', onConnect)
@@ -280,6 +297,7 @@ export function App() {
     socket.on('stock_updated', onStockUpdated)
     socket.on('new_order', onNewOrder)
     socket.on('order_status_updated', onOrderStatusUpdated)
+    socket.on('rider_assigned', onRiderAssigned)
 
     if (socket.connected) {
       onConnect()
@@ -379,12 +397,53 @@ export function App() {
   }
 
   // 5. Order Fulfillment Actions
-  async function handleOrderStatusChange(orderId: string, nextStatus: string) {
+  async function handleOrderStatusChange(orderId: string, nextStatus: string, reason?: string) {
     try {
-      const res = await updatePartnerOrderStatus(token, orderId, nextStatus)
+      const res = await updatePartnerOrderStatus(token, orderId, nextStatus, reason)
       setOrders((prev) => prev.map((o) => (o.id === orderId ? res.order : o)))
+      if (token) {
+        fetchPartnerStats(token).then(setStats).catch(() => {})
+      }
     } catch (err) {
       alert('Failed to update order status: ' + (err as Error).message)
+    }
+  }
+
+  function openCancelModal(order: PartnerOrder) {
+    setCancelModalOrder(order)
+    setCancelReasonOption('Item out of stock')
+    setCancelCustomReason('')
+    setCancelModalError('')
+  }
+
+  function closeCancelModal() {
+    setCancelModalOrder(null)
+    setCancelReasonOption('Item out of stock')
+    setCancelCustomReason('')
+    setCancelModalError('')
+    setCancelLoading(false)
+  }
+
+  async function handleConfirmCancel() {
+    if (!cancelModalOrder) return
+    const finalReason = cancelReasonOption === 'Other reason'
+      ? cancelCustomReason.trim()
+      : (cancelCustomReason.trim() ? `${cancelReasonOption} - ${cancelCustomReason.trim()}` : cancelReasonOption)
+
+    if (!finalReason) {
+      setCancelModalError('Please select or specify a reason for cancellation.')
+      return
+    }
+
+    setCancelLoading(true)
+    setCancelModalError('')
+    try {
+      await handleOrderStatusChange(cancelModalOrder.id, 'cancelled', finalReason)
+      closeCancelModal()
+    } catch (err) {
+      setCancelModalError((err as Error).message || 'Failed to cancel order.')
+    } finally {
+      setCancelLoading(false)
     }
   }
 
@@ -442,13 +501,47 @@ export function App() {
 
             <div className="form-group" style={{ marginBottom: 20 }}>
               <label>Password (Provided by Admin)</label>
-              <input
-                type="password"
-                placeholder="Enter partner password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-              />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type={showLoginPassword ? 'text' : 'password'}
+                  placeholder="Enter partner password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  style={{ width: '100%', paddingRight: '42px' }}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword((prev) => !prev)}
+                  title={showLoginPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {showLoginPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
@@ -823,7 +916,7 @@ export function App() {
           <div>
             <div className="section-toolbar">
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {['all', 'received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'].map((st) => (
+                {['all', 'received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'].map((st) => (
                   <button
                     key={st}
                     className={`action-step-btn ${orderFilter === st ? 'active' : ''}`}
@@ -839,7 +932,9 @@ export function App() {
                       ? 'Preparing'
                       : st === 'out_for_delivery'
                       ? 'Dispatched'
-                      : 'Delivered'}
+                      : st === 'delivered'
+                      ? 'Delivered'
+                      : 'Cancelled'}
                   </button>
                 ))}
               </div>
@@ -881,6 +976,17 @@ export function App() {
                             ⏱ Slot: {ord.deliverySlot}
                           </div>
                         )}
+
+                        {(ord.riderName || (ord as any).rider_name) && (
+                          <div style={{ marginTop: 8, padding: '6px 10px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 12, color: '#1e40af' }}>
+                            🛵 <b>Delivery Partner:</b> {ord.riderName || (ord as any).rider_name}
+                            {(ord.riderPhone || (ord as any).rider_phone) && (
+                              <span style={{ marginLeft: 6, color: '#2563eb', fontWeight: 600 }}>
+                                (📞 {ord.riderPhone || (ord as any).rider_phone})
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Items Ordered */}
@@ -919,6 +1025,20 @@ export function App() {
                           </div>
                         )}
                       </div>
+
+                      {/* Cancelled Alert Box */}
+                      {ord.status === 'cancelled' && (
+                        <div style={{ gridColumn: '1 / -1', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px' }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#dc2626' }}>
+                            🚫 Order Cancelled: {ord.cancelReason || 'Cancelled by merchant / customer'}
+                          </span>
+                          {ord.cancelledAt && (
+                            <div style={{ fontSize: 11, color: '#991b1b', marginTop: 2 }}>
+                              Cancelled at: {new Date(ord.cancelledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Order Fulfillment 4-Step Actions */}
@@ -969,6 +1089,30 @@ export function App() {
                           <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: 4 }}>
                             ✓ Order Completed & Delivered
                           </span>
+                        )}
+
+                        {ord.status !== 'delivered' && ord.status !== 'cancelled' && (
+                          <button
+                            type="button"
+                            className="btn-outline"
+                            style={{ padding: '6px 12px', fontSize: 12, borderColor: '#fca5a5', color: '#dc2626' }}
+                            onClick={() => openCancelModal(ord)}
+                          >
+                            ✕ Cancel / Reject Order
+                          </button>
+                        )}
+
+                        {ord.status === 'cancelled' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 4 }}>
+                              ✕ Order Cancelled &amp; Stock Restored
+                            </span>
+                            {ord.cancelReason && (
+                              <span style={{ fontSize: 11, color: '#991b1b', fontStyle: 'italic' }}>
+                                Reason: {ord.cancelReason} {ord.cancelledBy ? `(by ${ord.cancelledBy})` : ''}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1042,6 +1186,12 @@ export function App() {
                     {orders.filter((o) => o.status === 'delivered').length}
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#059669' }}>Delivered</div>
+                </div>
+                <div style={{ background: '#fee2e2', padding: 14, borderRadius: 8, textAlign: 'center' }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#b91c1c' }}>
+                    {orders.filter((o) => o.status === 'cancelled').length}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#dc2626' }}>Cancelled</div>
                 </div>
               </div>
             </div>
@@ -1255,6 +1405,156 @@ export function App() {
                 onClick={handleSaveStockEdit}
               >
                 Update Stock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL: CANCEL / REJECT ORDER WITH REASON                       */}
+      {/* ============================================================== */}
+      {cancelModalOrder && (
+        <div className="modal-overlay" onClick={closeCancelModal}>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540 }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid #fee2e2', background: '#fef2f2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 24 }}>⚠️</span>
+                <div>
+                  <h2 className="modal-title" style={{ color: '#b91c1c', margin: 0, fontSize: 18 }}>
+                    Cancel / Reject Order #{cancelModalOrder.id.slice(-6).toUpperCase()}
+                  </h2>
+                  <div style={{ fontSize: 12, color: '#dc2626', marginTop: 2 }}>
+                    Customer: <strong>{cancelModalOrder.name}</strong> ({cancelModalOrder.phone})
+                  </div>
+                </div>
+              </div>
+              <button className="modal-close-btn" onClick={closeCancelModal}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ padding: '20px 24px' }}>
+              {cancelModalError && <div className="alert-box error">{cancelModalError}</div>}
+
+              {/* Order quick summary box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px', fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ color: '#64748b' }}>Ordered Items:</span>
+                  <span style={{ fontWeight: 700, color: '#0f172a' }}>
+                    ₹{cancelModalOrder.amount} ({cancelModalOrder.paymentMethod?.toUpperCase() || 'COD'})
+                  </span>
+                </div>
+                <div style={{ color: '#334155', fontWeight: 500 }}>
+                  {cancelModalOrder.items}
+                </div>
+              </div>
+
+              {/* Stock restoration alert */}
+              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#065f46', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>📦</span>
+                <span>
+                  <strong>Inventory Auto-Restore:</strong> Cancelling will automatically add items' quantities back to your store's live stock.
+                </span>
+              </div>
+
+              {/* Reason selection */}
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>
+                  Select Reason for Cancellation *
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                  {[
+                    { label: '📦 Item out of stock', val: 'Item out of stock' },
+                    { label: '🏪 Store / Kitchen closed', val: 'Store closed' },
+                    { label: '⏳ High rush / Cannot fulfill', val: 'High rush - unable to prepare' },
+                    { label: '📍 Address out of delivery area', val: 'Delivery area unreachable' },
+                    { label: '📞 Customer requested cancellation', val: 'Customer requested cancellation' },
+                    { label: '✍️ Other custom reason', val: 'Other reason' },
+                  ].map((r) => {
+                    const isSelected = cancelReasonOption === r.val
+                    return (
+                      <button
+                        key={r.val}
+                        type="button"
+                        onClick={() => setCancelReasonOption(r.val)}
+                        style={{
+                          textAlign: 'left',
+                          padding: '10px 12px',
+                          borderRadius: 8,
+                          border: isSelected ? '2px solid #ef4444' : '1px solid #cbd5e1',
+                          background: isSelected ? '#fef2f2' : '#ffffff',
+                          color: isSelected ? '#b91c1c' : '#334155',
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <span style={{ fontSize: 14 }}>{isSelected ? '🔘' : '⚪'}</span>
+                        <span>{r.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Additional notes textarea */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 4 }}>
+                  {cancelReasonOption === 'Other reason' ? 'Please specify reason details *' : 'Additional Note for Customer (Optional)'}
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder={
+                    cancelReasonOption === 'Other reason'
+                      ? 'e.g. Ingredients finished for today, or kitchen breakdown...'
+                      : 'e.g. We apologize for the inconvenience...'
+                  }
+                  value={cancelCustomReason}
+                  onChange={(e) => setCancelCustomReason(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    border: '1px solid #cbd5e1',
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ borderTop: '1px solid #fee2e2', background: '#fff5f5' }}>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={closeCancelModal}
+                disabled={cancelLoading}
+              >
+                No, Keep Order
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ background: '#dc2626', borderColor: '#b91c1c', display: 'flex', alignItems: 'center', gap: 6 }}
+                onClick={handleConfirmCancel}
+                disabled={cancelLoading}
+              >
+                {cancelLoading ? (
+                  <>
+                    <span className="spinner" style={{ width: 14, height: 14 }} />
+                    Cancelling...
+                  </>
+                ) : (
+                  <>
+                    <span>✕</span>
+                    Confirm Cancellation
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -19,6 +19,7 @@ const authRouter = require('./routes/auth')
 const supportRouter = require('./routes/support')
 const partnersRouter = require('./routes/partners')
 const storesRouter = require('./routes/stores')
+const deliveryRouter = require('./routes/delivery')
 
 const app = express()
 const server = http.createServer(app)
@@ -70,6 +71,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/support', supportRouter)
 app.use('/api/partners', partnersRouter)
 app.use('/api/stores', storesRouter)
+app.use('/api/delivery', deliveryRouter)
 
 // 404 Handler for undefined API routes
 app.use('/api', (req, res) => {

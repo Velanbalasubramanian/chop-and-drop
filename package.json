@@ -13,7 +13,11 @@
     "dev:partner": "npm run dev --prefix partner",
     "mobile": "npm start --prefix mobile",
     "mobile:android": "npm run android --prefix mobile",
-    "mobile:ios": "npm run ios --prefix mobile"
+    "mobile:ios": "npm run ios --prefix mobile",
+    "delivery": "npm start --prefix delivery",
+    "delivery:web": "npm run web --prefix delivery",
+    "delivery:android": "npm run android --prefix delivery",
+    "delivery:ios": "npm run ios --prefix delivery"
   },
   "keywords": [
     "delivery",

@@ -28,17 +28,22 @@ export default function OtpLoginScreen() {
   const [name, setName] = useState('')
   const [isNewUser, setIsNewUser] = useState(false)
   const [devOtp, setDevOtp] = useState('')
+  const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSendCode() {
-    if (!phone.trim() || phone.trim().length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit mobile number.')
+    setError('')
+    setSuccessMessage('')
+    const cleanPhone = phone.replace(/[^0-9]/g, '')
+    if (cleanPhone.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.')
       return
     }
 
     setLoading(true)
     try {
-      const res = await requestOtp(phone.trim())
+      const res = await requestOtp(cleanPhone)
       setIsNewUser(res.isNewUser)
       if (res.devOtp) {
         setDevOtp(res.devOtp)
@@ -46,35 +51,45 @@ export default function OtpLoginScreen() {
       }
       setStep('verify')
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Could not send verification code.')
+      setError(err.message || 'Could not send verification code.')
     } finally {
       setLoading(false)
     }
   }
 
   async function handleVerify() {
+    setError('')
+    const cleanPhone = phone.replace(/[^0-9]/g, '')
     if (!code.trim() || code.trim().length < 6) {
-      Alert.alert('Required', 'Please enter the 6-digit verification code.')
+      setError('Please enter the 6-digit verification code.')
       return
     }
     if (isNewUser && !name.trim()) {
-      Alert.alert('Required', 'Please enter your name to complete account registration.')
+      setError('Please enter your name to complete account registration.')
       return
     }
 
     setLoading(true)
     try {
-      const result = await verifyOtp(phone.trim(), code.trim(), name.trim() || undefined)
+      const result = await verifyOtp(cleanPhone, code.trim(), name.trim() || undefined)
       await setSession(result)
-      Alert.alert('Success! 🎉', 'You are now signed in.', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') },
-      ])
+      setSuccessMessage('Welcome to Zippo! 🎉 Signed in successfully.')
+      setTimeout(() => {
+        try {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          })
+        } catch {
+          navigation.navigate('MainTabs', { screen: 'HomeTab' })
+        }
+      }, 1200)
     } catch (err: any) {
       if (err.needsName) {
         setIsNewUser(true)
-        Alert.alert('Welcome!', 'First time logging in with this number? Please enter your name below.')
+        setError('First time logging in with this number? Please enter your name below.')
       } else {
-        Alert.alert('Verification Failed', err.message || 'Invalid or expired code.')
+        setError(err.message || 'Invalid or expired code. Please try again.')
       }
     } finally {
       setLoading(false)
@@ -102,6 +117,24 @@ export default function OtpLoginScreen() {
                 : `Enter the 6-digit verification code sent to +91 ${phone}`}
             </Text>
 
+            {successMessage ? (
+              <View style={styles.successBox}>
+                <Ionicons name="checkmark-circle" size={24} color="#059669" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.successTitle}>Signed In! 🎉</Text>
+                  <Text style={styles.successText}>{successMessage}</Text>
+                  <Text style={styles.successSub}>Taking you to the store now...</Text>
+                </View>
+              </View>
+            ) : null}
+
+            {error ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={18} color="#dc2626" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
             {/* Dev OTP Notice if Twilio not set */}
             {devOtp ? (
               <View style={styles.devOtpBanner}>
@@ -124,15 +157,24 @@ export default function OtpLoginScreen() {
                     placeholder="e.g. 9876543210"
                     keyboardType="phone-pad"
                     value={phone}
-                    onChangeText={setPhone}
+                    onChangeText={(text) => {
+                      setError('')
+                      let clean = text.replace(/[^0-9]/g, '')
+                      if (clean.startsWith('91') && clean.length > 10) clean = clean.slice(2)
+                      else if (clean.startsWith('0') && clean.length > 10) clean = clean.slice(1)
+                      setPhone(clean.slice(0, 10))
+                    }}
                     maxLength={10}
                   />
                 </View>
 
                 <TouchableOpacity
-                  style={styles.actionBtn}
+                  style={[
+                    styles.actionBtn,
+                    successMessage ? { backgroundColor: '#059669' } : undefined,
+                  ]}
                   onPress={handleSendCode}
-                  disabled={loading}
+                  disabled={loading || !!successMessage}
                   activeOpacity={0.85}
                 >
                   {loading ? (
@@ -151,7 +193,10 @@ export default function OtpLoginScreen() {
                       style={styles.input}
                       placeholder="e.g. Priyan"
                       value={name}
-                      onChangeText={setName}
+                      onChangeText={(val) => {
+                        setError('')
+                        setName(val)
+                      }}
                     />
                   </View>
                 )}
@@ -163,15 +208,21 @@ export default function OtpLoginScreen() {
                     placeholder="••••••"
                     keyboardType="number-pad"
                     value={code}
-                    onChangeText={setCode}
+                    onChangeText={(val) => {
+                      setError('')
+                      setCode(val)
+                    }}
                     maxLength={6}
                   />
                 </View>
 
                 <TouchableOpacity
-                  style={styles.actionBtn}
+                  style={[
+                    styles.actionBtn,
+                    successMessage ? { backgroundColor: '#059669' } : undefined,
+                  ]}
                   onPress={handleVerify}
-                  disabled={loading}
+                  disabled={loading || !!successMessage}
                   activeOpacity={0.85}
                 >
                   {loading ? (
@@ -183,7 +234,10 @@ export default function OtpLoginScreen() {
 
                 <TouchableOpacity
                   style={styles.resendBtn}
-                  onPress={() => setStep('request')}
+                  onPress={() => {
+                    setError('')
+                    setStep('request')
+                  }}
                 >
                   <Text style={styles.resendBtnText}>Change phone number / Resend code</Text>
                 </TouchableOpacity>
@@ -324,5 +378,54 @@ const styles = StyleSheet.create({
     color: THEME.colors.primary,
     fontWeight: '700',
     fontSize: 13,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginVertical: 10,
+    gap: 8,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#dc2626',
+    lineHeight: 18,
+  },
+  successBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1.5,
+    borderColor: '#6ee7b7',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginVertical: 12,
+    gap: 10,
+  },
+  successTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#065f46',
+    marginBottom: 2,
+  },
+  successText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#047857',
+    lineHeight: 18,
+  },
+  successSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#059669',
+    marginTop: 4,
   },
 })

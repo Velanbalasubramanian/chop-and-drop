@@ -83,6 +83,15 @@ export default function CartScreen() {
             <Text style={styles.browseBtnText}>Explore Products</Text>
             <Ionicons name="arrow-forward" size={16} color="#ffffff" />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.trackLinkBtn}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'TrackTab' })}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="navigate-outline" size={16} color={THEME.colors.primary} />
+            <Text style={styles.trackLinkText}>Track an Existing Order</Text>
+          </TouchableOpacity>
         </View>
       </View>
     )
@@ -326,6 +335,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 14,
+  },
+  trackLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+  },
+  trackLinkText: {
+    color: THEME.colors.primary,
+    fontWeight: '700',
+    fontSize: 13,
   },
   itemsCard: {
     backgroundColor: '#ffffff',

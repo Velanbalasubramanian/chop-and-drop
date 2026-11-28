@@ -108,12 +108,13 @@ export async function fetchPartnerOrders(token: string): Promise<{ orders: Partn
 export async function updatePartnerOrderStatus(
   token: string,
   orderId: string,
-  status: string
+  status: string,
+  reason?: string
 ): Promise<{ ok: boolean; order: PartnerOrder }> {
   const res = await fetch(`/api/partners/orders/${encodeURIComponent(orderId)}/status`, {
     method: 'PATCH',
     headers: getAuthHeaders(token),
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, reason }),
   })
   const data = await res.json()
   if (!res.ok) {

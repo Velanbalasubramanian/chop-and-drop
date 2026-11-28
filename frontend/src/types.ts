@@ -79,6 +79,12 @@ export interface TrackedOrder {
   refundRequestedAt?: string
   refundProcessedAt?: string
   refundUpi?: string
+  riderName?: string
+  riderPhone?: string
+  partnerStoreName?: string
+  cancelReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
   receivedAt: string
   steps: OrderStatus[]
 }
@@ -103,6 +109,12 @@ export interface AdminOrder {
   refundRequestedAt?: string
   refundProcessedAt?: string
   refundUpi?: string
+  riderName?: string
+  riderPhone?: string
+  partnerStoreName?: string
+  cancelReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
   receivedAt: string
   matchingItems?: string[]
   isPartnerCategory?: boolean

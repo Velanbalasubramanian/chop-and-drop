@@ -107,7 +107,13 @@ export default function LoginScreen() {
                 placeholder="10-digit mobile number"
                 keyboardType="phone-pad"
                 value={phone}
-                onChangeText={setPhone}
+                onChangeText={(text) => {
+                  setError('')
+                  let clean = text.replace(/[^0-9]/g, '')
+                  if (clean.startsWith('91') && clean.length > 10) clean = clean.slice(2)
+                  else if (clean.startsWith('0') && clean.length > 10) clean = clean.slice(1)
+                  setPhone(clean.slice(0, 10))
+                }}
                 maxLength={10}
               />
             </View>

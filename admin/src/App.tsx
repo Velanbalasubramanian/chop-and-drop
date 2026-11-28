@@ -75,6 +75,7 @@ export default function App() {
   })
   const [partnerSubmitting, setPartnerSubmitting] = useState(false)
   const [partnerActionMsg, setPartnerActionMsg] = useState('')
+  const [showPartnerPassword, setShowPartnerPassword] = useState(false)
 
   // Filters & search
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all')
@@ -827,14 +828,46 @@ export default function App() {
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.3rem', color: '#334155' }}>
                       🔒 Partner Password *
                     </label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="Password for partner dashboard login"
-                      value={newPartnerForm.password}
-                      onChange={(e) => setNewPartnerForm({ ...newPartnerForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
-                    />
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type={showPartnerPassword ? 'text' : 'password'}
+                        required
+                        placeholder="Password for partner dashboard login"
+                        value={newPartnerForm.password}
+                        onChange={(e) => setNewPartnerForm({ ...newPartnerForm, password: e.target.value })}
+                        style={{ width: '100%', padding: '0.55rem 2.2rem 0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPartnerPassword((prev) => !prev)}
+                        title={showPartnerPassword ? 'Hide password' : 'Show password'}
+                        aria-label={showPartnerPassword ? 'Hide password' : 'Show password'}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#64748b',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '2px',
+                        }}
+                      >
+                        {showPartnerPassword ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div>

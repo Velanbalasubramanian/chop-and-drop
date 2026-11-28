@@ -73,6 +73,17 @@ function initSocket(server) {
       }
     })
 
+    // Delivery Partner / Rider room: join if authenticated with Delivery JWT
+    socket.on('join_delivery', (data) => {
+      const token = typeof data === 'string' ? data : data?.token
+      if (!token) return
+      const payload = verifyToken(token)
+      if (payload && (payload.role === 'delivery' || payload.role === 'admin')) {
+        socket.join('riders_room')
+        socket.emit('delivery_joined', { ok: true, riderId: payload.sub, name: payload.name })
+      }
+    })
+
     socket.on('disconnect', () => {
       // Clean disconnect
     })
@@ -91,12 +102,14 @@ function emitNewOrder(order) {
   io.to('admin_room').emit('new_order', order)
   // Broadcast to partner rooms
   io.to('partners_room').emit('new_order', order)
+  // Broadcast to delivery riders
+  io.to('riders_room').emit('new_order', order)
 }
 
-function emitOrderStatusUpdate(orderId, status) {
+function emitOrderStatusUpdate(orderId, status, extra = {}) {
   if (!io) return
   const normalizedId = String(orderId).replace(/^#/, '').trim().toUpperCase()
-  const payload = { orderId: normalizedId, status }
+  const payload = { orderId: normalizedId, status, ...extra }
 
   // Send to customers listening to this specific order room
   io.to(`order:${normalizedId}`).emit('order_status_updated', payload)
@@ -109,6 +122,20 @@ function emitOrderStatusUpdate(orderId, status) {
 
   // Send to partner rooms
   io.to('partners_room').emit('order_status_updated', payload)
+
+  // Send to delivery riders room
+  io.to('riders_room').emit('order_status_updated', payload)
+}
+
+function emitRiderAssigned(orderId, riderInfo = {}) {
+  if (!io) return
+  const normalizedId = String(orderId).replace(/^#/, '').trim().toUpperCase()
+  const payload = { orderId: normalizedId, ...riderInfo }
+  io.to(`order:${normalizedId}`).emit('rider_assigned', payload)
+  io.emit('rider_assigned', payload)
+  io.to('admin_room').emit('rider_assigned', payload)
+  io.to('partners_room').emit('rider_assigned', payload)
+  io.to('riders_room').emit('rider_assigned', payload)
 }
 
 function emitOrderRefundUpdate(order) {
@@ -175,6 +202,7 @@ module.exports = {
   getIO,
   emitNewOrder,
   emitOrderStatusUpdate,
+  emitRiderAssigned,
   emitOrderRefundUpdate,
   emitNewVisit,
   emitNewTicket,

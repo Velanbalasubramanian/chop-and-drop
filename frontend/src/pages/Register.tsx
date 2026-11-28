@@ -11,12 +11,14 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    setIsAlreadyRegistered(false)
     setSuccess('')
     setLoading(true)
     try {
@@ -25,8 +27,15 @@ export default function Register() {
       setTimeout(() => {
         navigate('/my-orders')
       }, 1500)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not create your account.')
+    } catch (err: any) {
+      const msg = err instanceof Error ? err.message : 'Could not create your account.'
+      if (/already (exists|registered)/i.test(msg)) {
+        setIsAlreadyRegistered(true)
+        setError('This phone number is already registered.')
+      } else {
+        setIsAlreadyRegistered(false)
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -78,7 +87,18 @@ export default function Register() {
             {success}
           </div>
         )}
-        {error && <p className="form-status form-status-error">{error}</p>}
+        {isAlreadyRegistered && (
+          <div style={{ backgroundColor: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: '8px', padding: '14px', marginTop: '14px', color: '#92400e' }}>
+            <div style={{ fontWeight: '800', marginBottom: '4px' }}>Account Already Created ⚠️</div>
+            <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>
+              An account with mobile number <strong>{phone}</strong> already exists in Zippo.
+            </p>
+            <Link to={`/login?phone=${encodeURIComponent(phone)}`} className="btn btn-secondary" style={{ display: 'inline-block', fontSize: '0.88rem', padding: '6px 14px' }}>
+              👉 Sign In with Password Now ➔
+            </Link>
+          </div>
+        )}
+        {error && !isAlreadyRegistered && <p className="form-status form-status-error">{error}</p>}
       </form>
 
       <p className="auth-switch">

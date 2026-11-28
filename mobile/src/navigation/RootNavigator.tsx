@@ -11,6 +11,8 @@ import OtpLoginScreen from '../screens/OtpLoginScreen'
 import RegisterScreen from '../screens/RegisterScreen'
 import SupportScreen from '../screens/SupportScreen'
 import AboutScreen from '../screens/AboutScreen'
+import RiderScreen from '../screens/RiderScreen'
+import PartnerScreen from '../screens/PartnerScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -34,6 +36,8 @@ export default function RootNavigator() {
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Support" component={SupportScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="RiderPortal" component={RiderScreen} />
+      <Stack.Screen name="PartnerPortal" component={PartnerScreen} />
     </Stack.Navigator>
   )
 }

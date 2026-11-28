@@ -161,11 +161,14 @@ export default function CheckoutScreen() {
         method: paymentMethod === 'online' ? 'Online UPI' : 'Cash on Delivery (COD)',
       })
 
-      // Auto-transition directly to live tracking screen
+      // Auto-transition directly to live tracking screen with persistent bottom tabs
       setTimeout(() => {
-        navigation.replace('TrackOrder', {
-          orderId: res.orderId,
-          phone: phone.trim(),
+        navigation.replace('MainTabs', {
+          screen: 'TrackTab',
+          params: {
+            orderId: res.orderId,
+            phone: phone.trim(),
+          },
         })
       }, 1800)
     } catch (err: any) {
@@ -510,9 +513,12 @@ export default function CheckoutScreen() {
                 style={styles.trackNowBtn}
                 activeOpacity={0.85}
                 onPress={() => {
-                  navigation.replace('TrackOrder', {
-                    orderId: placedOrder.orderId,
-                    phone: phone.trim(),
+                  navigation.replace('MainTabs', {
+                    screen: 'TrackTab',
+                    params: {
+                      orderId: placedOrder.orderId,
+                      phone: phone.trim(),
+                    },
                   })
                 }}
               >

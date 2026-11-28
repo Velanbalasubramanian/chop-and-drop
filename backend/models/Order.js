@@ -39,6 +39,9 @@ const orderSchema = new mongoose.Schema(
     followUpNotes: { type: String, default: '' },
     riderName: { type: String, default: '' },
     riderPhone: { type: String, default: '' },
+    cancelReason: { type: String, default: '' },
+    cancelledBy: { type: String, default: '' },
+    cancelledAt: { type: String, default: '' },
     receivedAt: { type: String, default: () => new Date().toISOString() },
   },
   {

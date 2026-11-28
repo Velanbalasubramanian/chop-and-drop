@@ -84,10 +84,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     loadProducts()
 
-    // 1. Periodic auto-sync fallback (every 4 seconds) to guarantee stock is never stale
+    // 1. Periodic auto-sync fallback (every 12 seconds) to guarantee stock is fresh without spamming requests
     const timer = setInterval(() => {
       loadProducts()
-    }, 4000)
+    }, 12000)
 
     // 2. Immediate re-sync when web tab or app window comes into view
     const onVisibilityChange = () => {

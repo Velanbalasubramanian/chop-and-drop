@@ -9,10 +9,27 @@ export default defineConfig({
   server: {
     port: 5175,
     proxy: {
-      '/api': 'http://localhost:4000',
+      '/api': {
+        target: 'http://127.0.0.1:4000',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (_err, _req, res) => {
+            if (res && 'writeHead' in res && !res.headersSent) {
+              res.writeHead(503, { 'Content-Type': 'application/json' })
+              res.end(JSON.stringify({ error: 'Backend server is currently offline on port 4000. Run "npm run dev:backend".' }))
+            }
+          })
+        },
+      },
       '/socket.io': {
-        target: 'http://localhost:4000',
+        target: 'http://127.0.0.1:4000',
         ws: true,
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', () => {
+            // Suppress noisy ECONNREFUSED ws errors when backend is restarting or offline
+          })
+        },
       },
     },
   },

@@ -11,11 +11,13 @@ const {
   getOrderByTrack,
   getOrderById,
   requestOrderRefund,
+  cancelOrder,
   reduceOrderItemsStock,
+  restoreOrderItemsStock,
   getAllProducts,
 } = require('../lib/db')
 const { validatePhoneNumber } = require('../lib/auth')
-const { emitNewOrder, emitOrderRefundUpdate, emitStockUpdate } = require('../lib/socket')
+const { emitNewOrder, emitOrderStatusUpdate, emitOrderRefundUpdate, emitStockUpdate } = require('../lib/socket')
 
 const router = express.Router()
 const STATUSES = ['received', 'confirmed', 'preparing', 'out_for_delivery', 'delivered']
@@ -223,6 +225,65 @@ router.post('/:id/refund', attachUserIfPresent, async (req, res) => {
   })
 })
 
+// POST /api/orders/:id/cancel — customer cancels an order
+router.post('/:id/cancel', attachUserIfPresent, async (req, res) => {
+  const orderId = String(req.params.id || '').trim().toUpperCase()
+  const { phone, reason } = req.body || {}
+
+  const order = await getOrderById(orderId)
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found.' })
+  }
+
+  // Security check: phone must match order, or authenticated user must own the order
+  const orderPhoneClean = String(order.phone || '').trim()
+  const inputPhoneClean = String(phone || '').trim()
+  const userMatches = req.user && req.user.id && req.user.id === order.userId
+  const phoneMatches = inputPhoneClean && (orderPhoneClean === inputPhoneClean || orderPhoneClean.slice(-10) === inputPhoneClean.slice(-10))
+
+  if (!userMatches && !phoneMatches) {
+    return res.status(403).json({ error: 'Verification failed. Phone number does not match order record.' })
+  }
+
+  if (order.status === 'delivered') {
+    return res.status(400).json({ error: 'Delivered orders cannot be cancelled. You can request a refund or support instead.' })
+  }
+
+  if (order.status === 'cancelled') {
+    return res.status(400).json({ error: 'This order has already been cancelled.' })
+  }
+
+  const cleanReason = String(reason || 'Customer cancelled the order').trim()
+
+  // 1. Cancel the order in database
+  const updatedOrder = await cancelOrder(orderId, {
+    reason: cleanReason,
+    cancelledBy: 'customer',
+  })
+
+  // 2. Restore stock for items
+  try {
+    const restoredProducts = await restoreOrderItemsStock(order.items, order.cartItems || [])
+    if (restoredProducts && restoredProducts.length > 0) {
+      emitStockUpdate(restoredProducts)
+    }
+  } catch (err) {
+    console.error('[orders] Stock restore error upon customer cancel:', err)
+  }
+
+  // 3. Emit real-time updates to customer, partner, and admin
+  emitOrderStatusUpdate(orderId, 'cancelled')
+  if (updatedOrder.paymentStatus === 'refund_requested' || updatedOrder.paymentStatus === 'refunded') {
+    emitOrderRefundUpdate(updatedOrder)
+  }
+
+  res.json({
+    ok: true,
+    message: 'Your order has been cancelled successfully.',
+    order: updatedOrder,
+  })
+})
+
 // GET /api/orders/track?orderId=CD-XXXXXX&phone=98765xxxxx
 router.get('/track', async (req, res) => {
   const { orderId, phone } = req.query
@@ -239,6 +300,7 @@ router.get('/track', async (req, res) => {
 
   res.json({
     id: order.id,
+    phone: order.phone,
     status: order.status,
     deliverySlot: order.deliverySlot,
     items: order.items,
@@ -252,6 +314,12 @@ router.get('/track', async (req, res) => {
     refundRequestedAt: order.refundRequestedAt,
     refundProcessedAt: order.refundProcessedAt,
     refundUpi: order.refundUpi,
+    riderName: order.riderName || order.rider_name || '',
+    riderPhone: order.riderPhone || order.rider_phone || '',
+    partnerStoreName: order.partnerStoreName || order.partner_store_name || '',
+    cancelReason: order.cancelReason || '',
+    cancelledBy: order.cancelledBy || '',
+    cancelledAt: order.cancelledAt || '',
     receivedAt: order.receivedAt,
     steps: STATUSES,
   })

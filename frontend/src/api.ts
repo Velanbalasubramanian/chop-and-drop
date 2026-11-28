@@ -158,6 +158,27 @@ export async function requestOrderRefund(
   return data
 }
 
+export async function cancelOrder(
+  orderId: string,
+  phone: string,
+  reason: string,
+  token?: string | null
+): Promise<{ ok: boolean; message: string; order: TrackedOrder }> {
+  const res = await fetch(apiUrl(`/api/orders/${encodeURIComponent(orderId)}/cancel`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ phone, reason }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to cancel order.')
+  }
+  return data
+}
+
 export async function adminLogin(password: string): Promise<{ ok: boolean; token?: string; error?: string }> {
   const res = await fetch(apiUrl('/api/admin/login'), {
     method: 'POST',

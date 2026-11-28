@@ -90,11 +90,24 @@ sqlite.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS riders (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    vehicle TEXT DEFAULT 'Bike',
+    zone TEXT DEFAULT 'Chennai Central',
+    status TEXT DEFAULT 'online',
+    rating REAL DEFAULT 4.9,
+    created_at TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(phone);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
   CREATE INDEX IF NOT EXISTS idx_visits_visited_at ON visits(visited_at);
   CREATE INDEX IF NOT EXISTS idx_partners_phone ON partners(phone);
   CREATE INDEX IF NOT EXISTS idx_partners_category ON partners(category);
+  CREATE INDEX IF NOT EXISTS idx_riders_phone ON riders(phone);
 `)
 
 // Safe schema migration for SQLite
@@ -126,6 +139,9 @@ try { sqlite.exec("ALTER TABLE orders ADD COLUMN partner_store_name TEXT DEFAULT
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN follow_up_notes TEXT DEFAULT '';") } catch (e) {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN rider_name TEXT DEFAULT '';") } catch (e) {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN rider_phone TEXT DEFAULT '';") } catch (e) {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN cancel_reason TEXT DEFAULT '';") } catch (e) {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN cancelled_by TEXT DEFAULT '';") } catch (e) {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN cancelled_at TEXT DEFAULT '';") } catch (e) {}
 
 // One-time data sync: ensure Nila Bakery is properly named and linked
 try {
@@ -133,6 +149,42 @@ try {
     UPDATE partners SET store_name = 'Nila Bakery', address = 'Anna Nagar, Chennai', description = 'Artisan freshly baked molten brownies, celebration cakes & pastries', rating = 4.9, delivery_time = '20-25 mins' WHERE id = 'PRT-4400FA';
     UPDATE products SET partner_id = 'PRT-4400FA' WHERE (category = 'cakes' OR id LIKE '%brownie%') AND (partner_id = '' OR partner_id IS NULL OR partner_id = 'PRT-CAKE01');
   `)
+} catch (e) {}
+
+// Ensure demo partners exist and have valid PARTNER123 password
+try {
+  const bcrypt = require('bcryptjs')
+  const partnerHash = bcrypt.hashSync('PARTNER123', 10)
+  
+  // Update iniyavan bakes password hash so PARTNER123 matches
+  sqlite.prepare("UPDATE partners SET password_hash = ? WHERE phone = '9750740587'").run(partnerHash)
+
+  // Seed standard demo partners
+  const insPartner = sqlite.prepare(`
+    INSERT OR IGNORE INTO partners (id, name, phone, email, password_hash, category, store_name, address, status, rating, delivery_time, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+  insPartner.run('PRT-B075FA', 'iniyavan', '9750740587', 'iniyavan@zippo.in', partnerHash, 'cakes', 'iniyavan bakes', 'Anna Nagar, Chennai', 'active', 4.9, '20-25 mins', new Date().toISOString())
+  insPartner.run('PRT-MEAT01', 'Chop & Drop Admin', '9840199999', 'meat@zippo.in', partnerHash, 'grocery', 'Chop & Drop Fresh Meat', 'T. Nagar, Chennai', 'active', 4.8, '15-20 mins', new Date().toISOString())
+  insPartner.run('PRT-VEG01', 'Velan', '9840122222', 'velan@zippo.in', partnerHash, 'cut_veggies', 'Velan Fresh Farm', 'Velachery, Chennai', 'active', 4.9, '15-25 mins', new Date().toISOString())
+} catch (e) {
+  console.log('Error syncing demo partners:', e)
+}
+
+// Seed demo riders if none exist
+try {
+  const count = sqlite.prepare('SELECT count(*) as c FROM riders').get()?.c || 0
+  if (count === 0) {
+    const bcrypt = require('bcryptjs')
+    const passHash = bcrypt.hashSync('RIDER123', 10)
+    const ins = sqlite.prepare(`
+      INSERT OR IGNORE INTO riders (id, name, phone, password_hash, vehicle, zone, status, rating, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+    ins.run('RDR-001', 'Saravanan', '9840123456', passHash, 'Honda Activa (TN 01 AB 1234)', 'Anna Nagar, Chennai', 'online', 4.9, new Date().toISOString())
+    ins.run('RDR-002', 'Karthik', '9750123456', passHash, 'Hero Splendor (TN 02 CD 5678)', 'T. Nagar, Chennai', 'online', 4.8, new Date().toISOString())
+    ins.run('RDR-003', 'Murugan', '9940123456', passHash, 'TVS Jupiter (TN 07 EF 9012)', 'Velachery, Chennai', 'online', 4.9, new Date().toISOString())
+  }
 } catch (e) {}
 
 // SQLite Queries
@@ -178,6 +230,17 @@ const sqliteQueries = {
   rejectRefund: sqlite.prepare(`
     UPDATE orders
     SET payment_status = ?, refund_reason = ?
+    WHERE id = ?
+  `),
+  cancelOrder: sqlite.prepare(`
+    UPDATE orders
+    SET status = 'cancelled',
+        cancel_reason = ?,
+        cancelled_by = ?,
+        cancelled_at = ?,
+        payment_status = CASE WHEN payment_method = 'online' AND payment_status = 'paid' THEN 'refund_requested' ELSE payment_status END,
+        refund_reason = CASE WHEN refund_reason = '' THEN ? ELSE refund_reason END,
+        refund_requested_at = CASE WHEN refund_requested_at = '' THEN ? ELSE refund_requested_at END
     WHERE id = ?
   `),
 
@@ -412,6 +475,9 @@ function formatSqliteOrder(row) {
     follow_up_notes: row.follow_up_notes,
     rider_name: row.rider_name,
     rider_phone: row.rider_phone,
+    cancelReason: row.cancel_reason || '',
+    cancelledBy: row.cancelled_by || '',
+    cancelledAt: row.cancelled_at || '',
   })
 }
 
@@ -628,6 +694,57 @@ async function reduceOrderItemsStock(itemsText = '', cartItems = []) {
   return reducedProducts
 }
 
+async function restoreProductStock(productId, quantityToRestore) {
+  const current = await getProductById(productId)
+  if (!current) return null
+  const addition = Math.max(0, Number(quantityToRestore) || 1)
+  const newStock = Number(current.stockQuantity) + addition
+  const isAvail = newStock > 0 ? 1 : 0
+
+  sqliteQueries.updateProductStock.run(newStock, isAvail, productId)
+  console.log(`[Stock Restored] Product "${current.name}" (${productId}): ${current.stockQuantity} -> ${newStock} (restored: +${addition})`)
+  return getProductById(productId)
+}
+
+async function restoreOrderItemsStock(itemsText = '', cartItems = []) {
+  const restoredProducts = []
+
+  // 1. If structured cartItems provided: [{ productId, quantity }]
+  if (Array.isArray(cartItems) && cartItems.length > 0) {
+    for (const item of cartItems) {
+      if (item.productId) {
+        const updated = await restoreProductStock(item.productId, item.quantity || 1)
+        if (updated) restoredProducts.push(updated)
+      }
+    }
+    return restoredProducts
+  }
+
+  // 2. Parse text items e.g. "20x brownie, 2x Red velvet"
+  const allProds = await getAllProducts()
+  const segments = String(itemsText).split(',').map((s) => s.trim()).filter(Boolean)
+
+  for (const segment of segments) {
+    const match = segment.match(/^(\d+(?:\.\d+)?)\s*x\s*(.+)$/i)
+    const qty = match ? parseFloat(match[1]) : 1
+    const itemName = match ? match[2].trim().toLowerCase() : segment.toLowerCase()
+
+    const matchedProd = allProds.find(
+      (p) =>
+        p.name.toLowerCase().trim() === itemName ||
+        p.id.toLowerCase().trim() === itemName ||
+        itemName.includes(p.name.toLowerCase())
+    )
+
+    if (matchedProd) {
+      const updated = await restoreProductStock(matchedProd.id, qty)
+      if (updated) restoredProducts.push(updated)
+    }
+  }
+
+  return restoredProducts
+}
+
 async function upsertProduct(product) {
   sqliteQueries.upsertProduct.run(
     product.id,
@@ -712,12 +829,36 @@ async function getUserById(id) {
 }
 
 async function getUserByPhone(phone) {
-  const cleanPhone = String(phone).trim()
+  if (!phone) return null
+  const raw = String(phone).trim()
+  const cleanPhone = raw.replace(/[\s\-()]/g, '')
+  if (!cleanPhone) return null
+
+  // Extract core 10 digits
+  let core10 = cleanPhone
+  if (core10.startsWith('+91') && core10.length === 13) core10 = core10.slice(3)
+  else if (core10.startsWith('91') && core10.length === 12) core10 = core10.slice(2)
+  else if (core10.startsWith('0') && core10.length === 11) core10 = core10.slice(1)
+
+  const variants = Array.from(new Set([
+    raw,
+    cleanPhone,
+    core10,
+    `+91${core10}`,
+    `91${core10}`,
+    `0${core10}`,
+  ])).filter(Boolean)
+
   if (isUsingMongo()) {
-    const doc = await User.findOne({ phone: cleanPhone }).lean()
+    const doc = await User.findOne({ phone: { $in: variants } }).lean()
     return doc || null
   }
-  return formatSqliteUser(sqliteQueries.findUserByPhone.get(cleanPhone))
+
+  for (const v of variants) {
+    const row = sqliteQueries.findUserByPhone.get(v)
+    if (row) return formatSqliteUser(row)
+  }
+  return null
 }
 
 async function createUser(user) {
@@ -1000,6 +1141,36 @@ async function rejectOrderRefund(id, { rejectionReason, previousPaymentStatus = 
   return getOrderById(normId)
 }
 
+async function cancelOrder(id, { reason = 'Order cancelled', cancelledBy = 'customer' } = {}) {
+  const normId = String(id).trim().toUpperCase()
+  const cancelledAt = new Date().toISOString()
+  const cleanReason = String(reason || 'Order cancelled').trim()
+
+  try {
+    sqliteQueries.cancelOrder.run(cleanReason, cancelledBy, cancelledAt, cleanReason, cancelledAt, normId)
+  } catch (e) {
+    console.error('[db] Error cancelling order in SQLite:', e)
+  }
+
+  if (isUsingMongo()) {
+    const existing = await Order.findOne({ id: normId })
+    const updates = {
+      status: 'cancelled',
+      cancelReason: cleanReason,
+      cancelledBy,
+      cancelledAt,
+    }
+    if (existing && existing.paymentMethod === 'online' && existing.paymentStatus === 'paid') {
+      updates.paymentStatus = 'refund_requested'
+      updates.refundReason = cleanReason
+      updates.refundRequestedAt = cancelledAt
+    }
+    await Order.updateOne({ id: normId }, { $set: updates })
+  }
+
+  return getOrderById(normId)
+}
+
 async function getRefundOrders() {
   if (isUsingMongo()) {
     return Order.find({
@@ -1271,6 +1442,103 @@ async function getStoreById(storeId) {
   }
 }
 
+function formatSqliteRider(row) {
+  if (!row) return null
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    passwordHash: row.password_hash,
+    vehicle: row.vehicle,
+    zone: row.zone,
+    status: row.status,
+    rating: row.rating,
+    createdAt: row.created_at,
+  }
+}
+
+async function getAllRiders() {
+  try {
+    const rows = sqlite.prepare('SELECT * FROM riders ORDER BY name ASC').all()
+    return rows.map(formatSqliteRider)
+  } catch {
+    return []
+  }
+}
+
+async function getRiderById(id) {
+  try {
+    const row = sqlite.prepare('SELECT * FROM riders WHERE id = ?').get(id)
+    return formatSqliteRider(row)
+  } catch {
+    return null
+  }
+}
+
+async function getRiderByPhone(phone) {
+  try {
+    const raw = String(phone || '').trim().replace(/[\s\-()]/g, '')
+    let core10 = raw
+    if (core10.startsWith('+91') && core10.length === 13) core10 = core10.slice(3)
+    else if (core10.startsWith('91') && core10.length === 12) core10 = core10.slice(2)
+    else if (core10.startsWith('0') && core10.length === 11) core10 = core10.slice(1)
+
+    const variants = Array.from(new Set([raw, core10, `+91${core10}`, `91${core10}`, `0${core10}`])).filter(Boolean)
+    for (const v of variants) {
+      const row = sqlite.prepare('SELECT * FROM riders WHERE phone = ?').get(v)
+      if (row) return formatSqliteRider(row)
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+async function updateRiderStatus(id, status) {
+  try {
+    sqlite.prepare('UPDATE riders SET status = ? WHERE id = ?').run(status, id)
+    return getRiderById(id)
+  } catch {
+    return null
+  }
+}
+
+async function createRider({
+  name,
+  phone,
+  password,
+  vehicle = 'Bike',
+  zone = 'Chennai Central',
+}) {
+  const cleanPhone = String(phone || '').trim().replace(/[\s\-()]/g, '')
+  const existing = await getRiderByPhone(cleanPhone)
+  if (existing) {
+    throw new Error('A delivery partner with this mobile number already exists.')
+  }
+
+  const bcrypt = require('bcryptjs')
+  const passwordHash = await bcrypt.hash(password || 'RIDER123', 10)
+  const id = 'RDR-' + Date.now().toString(36).toUpperCase()
+  const now = new Date().toISOString()
+
+  sqlite.prepare(`
+    INSERT INTO riders (id, name, phone, password_hash, vehicle, zone, status, rating, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    name.trim(),
+    cleanPhone,
+    passwordHash,
+    (vehicle || 'Bike').trim(),
+    (zone || 'Chennai Central').trim(),
+    'online',
+    4.9,
+    now
+  )
+
+  return getRiderById(id)
+}
+
 async function deletePartner(id) {
   sqliteQueries.deletePartner.run(id)
   return { ok: true }
@@ -1384,6 +1652,14 @@ module.exports = {
   deletePartnerProduct,
   reduceProductStock,
   reduceOrderItemsStock,
+  restoreProductStock,
+  restoreOrderItemsStock,
+  cancelOrder,
   getAllStores,
   getStoreById,
+  getAllRiders,
+  getRiderById,
+  getRiderByPhone,
+  updateRiderStatus,
+  createRider,
 }

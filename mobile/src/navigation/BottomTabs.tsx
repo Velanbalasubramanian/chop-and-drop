@@ -39,7 +39,7 @@ export default function BottomTabs() {
           paddingHorizontal: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
           marginLeft: 2,
         },

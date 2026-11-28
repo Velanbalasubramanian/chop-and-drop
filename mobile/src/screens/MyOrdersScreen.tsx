@@ -95,9 +95,12 @@ export default function MyOrdersScreen() {
                 style={styles.orderCard}
                 activeOpacity={0.85}
                 onPress={() =>
-                  navigation.navigate('TrackOrder', {
-                    orderId: item.id,
-                    phone: item.phone,
+                  navigation.navigate('MainTabs', {
+                    screen: 'TrackTab',
+                    params: {
+                      orderId: item.id,
+                      phone: item.phone,
+                    },
                   })
                 }
               >

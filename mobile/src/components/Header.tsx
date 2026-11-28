@@ -35,13 +35,13 @@ export default function Header({
       return
     }
 
-    // 2. If on Cart page, return to Store (ProductsTab)
-    if (title === 'Your Cart') {
-      try {
-        navigation.navigate('ProductsTab')
-      } catch {
-        navigation.navigate('MainTabs', { screen: 'ProductsTab' })
+    // 2. If on Track page or Cart page, return to HomeTab if no direct history
+    if (title === 'Live Order Tracking' || title === 'Your Cart') {
+      if (navigation.canGoBack()) {
+        navigation.goBack()
+        return
       }
+      navigation.navigate('MainTabs', { screen: 'HomeTab' })
       return
     }
 
@@ -91,6 +91,16 @@ export default function Header({
       </View>
 
       <View style={styles.rightRow}>
+        {!isHomeScreen && (
+          <TouchableOpacity
+            style={styles.homeButton}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'HomeTab' })}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="home-outline" size={20} color={THEME.colors.text} />
+          </TouchableOpacity>
+        )}
         {showCart && (
           <TouchableOpacity
             style={styles.cartButton}
@@ -165,6 +175,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: THEME.colors.textMuted,
     marginTop: 1,
+  },
+  homeButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cartButton: {
     position: 'relative',
